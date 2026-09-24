@@ -1,0 +1,27 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
+      - DATA_DIR=/data
+      - UPLOAD_DIR=/data/uploads
+      - CORS_ORIGINS=http://localhost:3000
+    volumes:
+      - ./data:/data
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+    depends_on:
+      - api

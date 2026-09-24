@@ -1,0 +1,229 @@
+[
+  {
+    "id": "case-seed-001",
+    "status": "open",
+    "created_at": "2026-09-22T09:15:00+08:00",
+    "updated_at": "2026-09-22T09:15:00+08:00",
+    "filename": "acme-office-supplies-inv-88421.pdf",
+    "mime_type": "application/pdf",
+    "source": "seed",
+    "extraction": {
+      "vendor": "Acme Office Supplies Inc.",
+      "vendor_tin": "123-456-789-000",
+      "invoice_number": "INV-88421",
+      "date": "2026-09-18",
+      "currency": "PHP",
+      "subtotal": 12500.00,
+      "tax": 1500.00,
+      "total": 14000.00,
+      "line_items": [
+        {"description": "A4 Bond Paper (ream)", "qty": 20, "unit_price": 250.00, "amount": 5000.00},
+        {"description": "Ballpoint Pens (box)", "qty": 50, "unit_price": 80.00, "amount": 4000.00},
+        {"description": "Staplers & clips kit", "qty": 10, "unit_price": 350.00, "amount": 3500.00}
+      ],
+      "summary": "Routine office supplies purchase from a known SME vendor. Line math and totals reconcile."
+    },
+    "risk_flags": [],
+    "overall_risk_score": 12,
+    "severity": "low",
+    "audit_log": [
+      {
+        "at": "2026-09-22T09:15:00+08:00",
+        "action": "ingested",
+        "actor": "system",
+        "note": "Seeded clean invoice for demo"
+      }
+    ]
+  },
+  {
+    "id": "case-seed-002",
+    "status": "open",
+    "created_at": "2026-09-21T14:30:00+08:00",
+    "updated_at": "2026-09-21T14:30:00+08:00",
+    "filename": "manila-logistics-freight-4410.pdf",
+    "mime_type": "application/pdf",
+    "source": "seed",
+    "extraction": {
+      "vendor": "Manila Bay Logistics Co.",
+      "vendor_tin": "987-654-321-000",
+      "invoice_number": "MBL-4410",
+      "date": "2026-09-20",
+      "currency": "PHP",
+      "subtotal": 45000.00,
+      "tax": 5400.00,
+      "total": 50400.00,
+      "line_items": [
+        {"description": "NCR last-mile delivery (Sep 1–15)", "qty": 1, "unit_price": 28000.00, "amount": 28000.00},
+        {"description": "Warehouse handling fee", "qty": 1, "unit_price": 17000.00, "amount": 17000.00}
+      ],
+      "summary": "Freight invoice from established logistics partner. Totals consistent; low risk."
+    },
+    "risk_flags": [],
+    "overall_risk_score": 18,
+    "severity": "low",
+    "audit_log": [
+      {
+        "at": "2026-09-21T14:30:00+08:00",
+        "action": "ingested",
+        "actor": "system",
+        "note": "Seeded clean freight invoice"
+      }
+    ]
+  },
+  {
+    "id": "case-seed-003",
+    "status": "open",
+    "created_at": "2026-09-23T11:00:00+08:00",
+    "updated_at": "2026-09-23T11:00:00+08:00",
+    "filename": "duplicate-acme-inv-88421.pdf",
+    "mime_type": "application/pdf",
+    "source": "seed",
+    "extraction": {
+      "vendor": "Acme Office Supplies Inc.",
+      "vendor_tin": "123-456-789-000",
+      "invoice_number": "INV-88421",
+      "date": "2026-09-18",
+      "currency": "PHP",
+      "subtotal": 12500.00,
+      "tax": 1500.00,
+      "total": 14000.00,
+      "line_items": [
+        {"description": "A4 Bond Paper (ream)", "qty": 20, "unit_price": 250.00, "amount": 5000.00},
+        {"description": "Ballpoint Pens (box)", "qty": 50, "unit_price": 80.00, "amount": 4000.00},
+        {"description": "Staplers & clips kit", "qty": 10, "unit_price": 350.00, "amount": 3500.00}
+      ],
+      "summary": "Appears identical to an earlier Acme invoice already in the queue — likely duplicate submission."
+    },
+    "risk_flags": [
+      {
+        "code": "DUPLICATE_INVOICE",
+        "severity": "high",
+        "title": "Possible duplicate invoice",
+        "explanation": "Invoice number INV-88421 from Acme Office Supplies Inc. matches case-seed-001 with the same total (₱14,000) and date.",
+        "evidence": "Matched vendor + invoice_number + total against open case case-seed-001"
+      }
+    ],
+    "overall_risk_score": 78,
+    "severity": "high",
+    "audit_log": [
+      {
+        "at": "2026-09-23T11:00:00+08:00",
+        "action": "ingested",
+        "actor": "system",
+        "note": "Seeded duplicate-risk case"
+      },
+      {
+        "at": "2026-09-23T11:00:05+08:00",
+        "action": "flagged",
+        "actor": "analyzer",
+        "note": "DUPLICATE_INVOICE raised"
+      }
+    ]
+  },
+  {
+    "id": "case-seed-004",
+    "status": "open",
+    "created_at": "2026-09-23T16:45:00+08:00",
+    "updated_at": "2026-09-23T16:45:00+08:00",
+    "filename": "ghost-vendor-rapid-trade-php92k.pdf",
+    "mime_type": "application/pdf",
+    "source": "seed",
+    "extraction": {
+      "vendor": "Rapid Trade Solutions PH",
+      "vendor_tin": "000-000-000-000",
+      "invoice_number": "RTS-00991",
+      "date": "2026-09-22",
+      "currency": "PHP",
+      "subtotal": 82142.86,
+      "tax": 9857.14,
+      "total": 92000.00,
+      "line_items": [
+        {"description": "Consulting / facilitation fee", "qty": 1, "unit_price": 82142.86, "amount": 82142.86}
+      ],
+      "summary": "New vendor with placeholder TIN and vague single-line service description — classic ghost-receipt pattern."
+    },
+    "risk_flags": [
+      {
+        "code": "GHOST_VENDOR",
+        "severity": "critical",
+        "title": "Suspected fictitious / ghost vendor",
+        "explanation": "Vendor TIN is all zeros, name does not match known suppliers, and the invoice is a single vague 'facilitation fee' line with no supporting detail.",
+        "evidence": "TIN=000-000-000-000; single opaque line item; first appearance of vendor"
+      },
+      {
+        "code": "TEMPLATE_LOOKING",
+        "severity": "medium",
+        "title": "Template-looking layout",
+        "explanation": "Layout resembles a generic online invoice template with minimal branding and missing bank details.",
+        "evidence": "Sparse header; no remittance advice block"
+      },
+      {
+        "code": "MISSING_FIELDS",
+        "severity": "medium",
+        "title": "Missing remittance / address fields",
+        "explanation": "No vendor address, contact, or payment instructions found on the document.",
+        "evidence": "extraction.vendor_address empty; payment_info empty"
+      }
+    ],
+    "overall_risk_score": 92,
+    "severity": "critical",
+    "audit_log": [
+      {
+        "at": "2026-09-23T16:45:00+08:00",
+        "action": "ingested",
+        "actor": "system",
+        "note": "Seeded ghost-vendor risk case"
+      }
+    ]
+  },
+  {
+    "id": "case-seed-005",
+    "status": "open",
+    "created_at": "2026-09-24T08:10:00+08:00",
+    "updated_at": "2026-09-24T08:10:00+08:00",
+    "filename": "math-error-cebu-catering.pdf",
+    "mime_type": "application/pdf",
+    "source": "seed",
+    "extraction": {
+      "vendor": "Cebu Island Catering Services",
+      "vendor_tin": "456-789-012-000",
+      "invoice_number": "CICS-772",
+      "date": "2026-09-19",
+      "currency": "PHP",
+      "subtotal": 28000.00,
+      "tax": 3360.00,
+      "total": 38500.00,
+      "line_items": [
+        {"description": "Corporate lunch buffet (80 pax)", "qty": 80, "unit_price": 350.00, "amount": 28000.00},
+        {"description": "Service charge", "qty": 1, "unit_price": 0.00, "amount": 0.00}
+      ],
+      "summary": "Line items sum to ₱28,000 + 12% VAT ₱3,360 = ₱31,360, but invoice total shows ₱38,500 — amount mismatch / math error."
+    },
+    "risk_flags": [
+      {
+        "code": "AMOUNT_MISMATCH",
+        "severity": "high",
+        "title": "Total does not match line items + tax",
+        "explanation": "Computed total from lines (₱28,000) + VAT 12% (₱3,360) = ₱31,360, but printed total is ₱38,500 (delta ₱7,140).",
+        "evidence": "sum(line_items)=28000; tax=3360; expected=31360; stated_total=38500"
+      },
+      {
+        "code": "MATH_ERROR",
+        "severity": "high",
+        "title": "Arithmetic inconsistency",
+        "explanation": "Either tax or grand total was altered after line items were calculated — requires human review before payment.",
+        "evidence": "delta_php=7140"
+      }
+    ],
+    "overall_risk_score": 81,
+    "severity": "high",
+    "audit_log": [
+      {
+        "at": "2026-09-24T08:10:00+08:00",
+        "action": "ingested",
+        "actor": "system",
+        "note": "Seeded math-error risk case"
+      }
+    ]
+  }
+]

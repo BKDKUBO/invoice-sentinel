@@ -1,0 +1,10 @@
+# docker build -f Dockerfile.standalone -t invoice-sentinel-api .
+FROM python:3.12-slim
+WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 DATA_DIR=/data UPLOAD_DIR=/data/uploads PORT=8080
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+RUN mkdir -p /data/uploads && cp /app/seed/seed-cases.json /data/seed-cases.json
+EXPOSE 8080
+CMD exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}
