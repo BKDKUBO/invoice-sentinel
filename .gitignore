@@ -31,3 +31,4 @@ data/uploads/
 *.pem
 credentials.json
 service-account*.json
+*.tsbuildinfo
