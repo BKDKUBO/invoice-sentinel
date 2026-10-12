@@ -136,7 +136,7 @@ Attach a GCS volume or switch the store to Firestore before production traffic.
 3. Default model: `gemini-3.8-flash` (override with `GEMINI_MODEL`).
 4. The analyzer requests structured JSON: vendor, invoice_number, date, currency, totals, line_items, `risk_flags[]`, `overall_risk_score`.
 
-Risk flag codes: `GHOST_VENDOR`, `DUPLICATE_INVOICE`, `AMOUNT_MISMATCH`, `TEMPLATE_LOOKING`, `MATH_ERROR`, `UNUSUAL_PAYMENT_CHANGE`, `MISSING_FIELDS`.
+Risk flag codes: `GHOST_VENDOR`, `DUPLICATE_INVOICE`, `AMOUNT_MISMATCH`, `OVERBILLING`, `TEMPLATE_LOOKING`, `MATH_ERROR`, `UNUSUAL_PAYMENT_CHANGE`, `MISSING_FIELDS`, plus the deterministic vendor-master / PO codes `UNKNOWN_VENDOR`, `VENDOR_TIN_MISMATCH`, `MISSING_PO`, `PO_MISMATCH` (see below).
 
 ## 3-minute demo script
 
@@ -158,6 +158,25 @@ Risk flag codes: `GHOST_VENDOR`, `DUPLICATE_INVOICE`, `AMOUNT_MISMATCH`, `TEMPLA
 3. Duplicate Acme INV-88421 — `DUPLICATE_INVOICE`  
 4. Rapid Trade Solutions — `GHOST_VENDOR` / template / missing fields  
 5. Cebu catering — `AMOUNT_MISMATCH` / `MATH_ERROR`
+
+## Vendor master & PO matching
+
+After Gemini extracts the invoice (including vendor TIN, the **pay-to account** and any **PO number**), `api/master.py` runs deterministic checks against an approved-vendor master and purchase-order register (fictional seed data in `api/seed/seed-vendors.json` and `api/seed/seed-pos.json`; runtime copies in `DATA_DIR/vendors.json` / `pos.json`, restored by `POST /api/reset-demo`).
+
+| Check | Flag | Severity |
+|---|---|---|
+| Vendor not in master | `UNKNOWN_VENDOR` (or strengthens an existing `GHOST_VENDOR`) | medium |
+| Known vendor, different TIN | `VENDOR_TIN_MISMATCH` (≤2 digits off = likely OCR misread → low) | high |
+| TIN belongs to another vendor name | `VENDOR_TIN_MISMATCH` | high |
+| Pay-to account not one of the vendor's verified accounts | `UNUSUAL_PAYMENT_CHANGE` with call-back contact from the master | critical |
+| Cited PO does not exist | `MISSING_PO` | high |
+| Qty / unit price / subtotal above the PO by more than 5%, or line not on PO | `PO_MISMATCH` with specifics | high |
+
+Every flag carries `expected: … | found: …` evidence, and each case has a **Matched against vendor master / PO** panel (`GET /api/cases/{id}/matching`; computed live for older/seed cases). Invoices without a PO number are treated as non-PO spend (no flag). The score-floor rules still apply (high ≥ 65, critical ≥ 85).
+
+Manage data at **/vendors** in the web app, or via `GET/POST /api/vendors`, `DELETE /api/vendors/{id}`, `GET/POST /api/pos`, `DELETE /api/pos/{po_number}`.
+
+Test samples `samples/09-known-vendor-new-bank.png`, `10-exceeds-po-qty.png`, `11-nonexistent-po.png` exercise these checks (`python samples/run_round.py`).
 
 ## API surface
 

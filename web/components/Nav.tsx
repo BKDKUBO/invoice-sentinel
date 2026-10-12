@@ -7,6 +7,7 @@ const links = [
   { href: "/", label: "Dashboard" },
   { href: "/inbox", label: "Case inbox" },
   { href: "/upload", label: "Upload" },
+  { href: "/vendors", label: "Vendors & POs" },
 ];
 
 export function Nav() {
