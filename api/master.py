@@ -5,14 +5,11 @@ from __future__ import annotations
 import difflib
 import json
 import re
-import shutil
-import threading
 from pathlib import Path
 from typing import Any
 
-from storage import _default_data_dir
+from db import collection
 
-_lock = threading.Lock()
 SEED_DIR = Path(__file__).resolve().parent / "seed"
 PO_TOLERANCE = 0.05  # 5% over PO qty / unit price / subtotal is tolerated
 
@@ -22,82 +19,52 @@ def po_subtotal(po: dict[str, Any]) -> float:
 
 
 class MasterStore:
-    def __init__(self, data_dir: Path | None = None) -> None:
-        self.data_dir = data_dir or _default_data_dir()
-        self.data_dir.mkdir(parents=True, exist_ok=True)
-        self.paths = {"vendors": self.data_dir / "vendors.json", "pos": self.data_dir / "pos.json"}
+    def __init__(self) -> None:
+        self.cols = {"vendors": collection("vendors", "id"), "pos": collection("pos", "po_number")}
         self.seeds = {"vendors": SEED_DIR / "seed-vendors.json", "pos": SEED_DIR / "seed-pos.json"}
-        for k in self.paths:
-            if not self.paths[k].exists():
+        for k, col in self.cols.items():
+            if not col.exists():
                 self._reset(k)
 
     def _reset(self, kind: str) -> int:
-        with _lock:
-            if self.seeds[kind].exists():
-                shutil.copy(self.seeds[kind], self.paths[kind])
-            else:
-                self.paths[kind].write_text("[]", encoding="utf-8")
-        return len(self._read(kind))
+        rows = json.loads(self.seeds[kind].read_text("utf-8")) if self.seeds[kind].exists() else []
+        self.cols[kind].replace_all(rows)
+        return len(rows)
 
     def reset_from_seed(self) -> dict[str, int]:
-        return {k: self._reset(k) for k in self.paths}
-
-    def _read(self, kind: str) -> list[dict[str, Any]]:
-        with _lock:
-            p = self.paths[kind]
-            raw = p.read_text(encoding="utf-8").strip() if p.exists() else ""
-            return json.loads(raw) if raw else []
-
-    def _write(self, kind: str, rows: list[dict[str, Any]]) -> None:
-        with _lock:
-            tmp = self.paths[kind].with_suffix(".tmp")
-            tmp.write_text(json.dumps(rows, indent=2, ensure_ascii=False), encoding="utf-8")
-            tmp.replace(self.paths[kind])
+        return {k: self._reset(k) for k in self.cols}
 
     # vendors
     def list_vendors(self) -> list[dict[str, Any]]:
-        return self._read("vendors")
+        return sorted(self.cols["vendors"].all(), key=lambda r: str(r.get("id")))
 
     def upsert_vendor(self, v: dict[str, Any]) -> dict[str, Any]:
-        rows = self._read("vendors")
         if not v.get("id"):
-            nums = [int(m.group(1)) for r in rows if (m := re.match(r"V-(\d+)", str(r.get("id"))))]
+            nums = [int(m.group(1)) for r in self.list_vendors() if (m := re.match(r"V-(\d+)", str(r.get("id"))))]
             v["id"] = f"V-{(max(nums) if nums else 0) + 1:03d}"
-        rows = [r for r in rows if r.get("id") != v["id"]] + [v]
-        rows.sort(key=lambda r: r["id"])
-        self._write("vendors", rows)
-        return v
+        return self.cols["vendors"].put(v)
 
     def delete_vendor(self, vid: str) -> bool:
-        rows = self._read("vendors")
-        new = [r for r in rows if r.get("id") != vid]
-        self._write("vendors", new)
-        return len(new) != len(rows)
+        return self.cols["vendors"].delete(vid)
 
     # POs
     def list_pos(self) -> list[dict[str, Any]]:
-        rows = self._read("pos")
+        rows = sorted(self.cols["pos"].all(), key=lambda r: str(r.get("po_number")))
         for r in rows:
             r["subtotal"] = po_subtotal(r)
         return rows
 
     def upsert_po(self, po: dict[str, Any]) -> dict[str, Any]:
-        rows = self._read("pos")
         po.pop("subtotal", None)
         if not po.get("po_number"):
-            nums = [int(m.group(1)) for r in rows if (m := re.search(r"(\d+)$", str(r.get("po_number"))))]
+            nums = [int(m.group(1)) for r in self.list_pos() if (m := re.search(r"(\d+)$", str(r.get("po_number"))))]
             po["po_number"] = f"PO-2026-{(max(nums) if nums else 0) + 1:04d}"
-        rows = [r for r in rows if r.get("po_number") != po["po_number"]] + [po]
-        rows.sort(key=lambda r: r["po_number"])
-        self._write("pos", rows)
+        self.cols["pos"].put(po)
         po["subtotal"] = po_subtotal(po)
         return po
 
     def delete_po(self, num: str) -> bool:
-        rows = self._read("pos")
-        new = [r for r in rows if r.get("po_number") != num]
-        self._write("pos", new)
-        return len(new) != len(rows)
+        return self.cols["pos"].delete(num)
 
 
 # ---------------- matching ----------------

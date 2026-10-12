@@ -173,7 +173,7 @@ def analyze_with_gemini(file_bytes: bytes, mime_type: str, filename: str, existi
             break
         except Exception as exc:  # retry transient overload / rate limits
             msg = str(exc)
-            if attempt < 3 and any(c in msg for c in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "timed out", "Timeout", "ReadTimeout")):
+            if attempt < 3 and any(c in msg for c in ("503", "504", "429", "UNAVAILABLE", "DEADLINE_EXCEEDED", "RESOURCE_EXHAUSTED", "timed out", "Timeout", "ReadTimeout")):
                 time.sleep(2 * (attempt + 1))
                 continue
             raise

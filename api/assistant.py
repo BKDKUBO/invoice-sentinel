@@ -11,7 +11,7 @@ from typing import Any
 
 from analyzer import AnalysisUnavailable, _parse_json_loose, gemini_configured, gemini_model_name, now_manila_iso
 from master import find_vendor, _norm_po
-from storage import _default_data_dir
+from db import collection
 
 _lock = threading.Lock()
 
@@ -20,29 +20,22 @@ LANGUAGES = ["auto", "English", "Tagalog", "Taglish", "Cebuano", "Ilocano", "Bah
 
 
 class ChatStore:
-    def __init__(self, data_dir: Path | None = None) -> None:
-        self.path = (data_dir or _default_data_dir()) / "chats.json"
-
-    def _read(self) -> dict[str, list]:
-        with _lock:
-            return json.loads(self.path.read_text("utf-8") or "{}") if self.path.exists() else {}
+    def __init__(self) -> None:
+        self.col = collection("chats", "case_id")
 
     def get(self, case_id: str) -> list[dict]:
-        return self._read().get(case_id, [])
+        return (self.col.get(case_id) or {}).get("messages", [])
 
     def append(self, case_id: str, *msgs: dict) -> list[dict]:
-        data = self._read()
-        data.setdefault(case_id, []).extend(msgs)
-        with _lock:
-            tmp = self.path.with_suffix(".tmp")
-            tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), "utf-8")
-            tmp.replace(self.path)
-        return data[case_id]
+        cur = self.get(case_id) + list(msgs)
+        self.col.put({"case_id": case_id, "messages": cur})
+        return cur
 
     def clear(self, case_id: str | None = None) -> None:
-        data = {} if case_id is None else {k: v for k, v in self._read().items() if k != case_id}
-        with _lock:
-            self.path.write_text(json.dumps(data), "utf-8")
+        if case_id is None:
+            self.col.replace_all([])
+        else:
+            self.col.delete(case_id)
 
 
 def build_evidence(case: dict, cases: list[dict], vendors: list[dict], pos: list[dict], matching: dict | None) -> dict:
@@ -91,19 +84,19 @@ def _gemini(contents: list, temperature: float = 0.3) -> dict[str, Any]:
         except Exception as exc:  # noqa: BLE001
             last = exc
             msg = str(exc)
-            if attempt < 3 and any(c in msg for c in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "timed out", "Timeout", "ReadTimeout")):
+            if attempt < 3 and any(c in msg for c in ("503", "504", "429", "UNAVAILABLE", "DEADLINE_EXCEEDED", "RESOURCE_EXHAUSTED", "timed out", "Timeout", "ReadTimeout")):
                 time.sleep(2 * (attempt + 1))
                 continue
             break
     raise AnalysisUnavailable(str(last))
 
 
-def _image_part(path: Path | None, mime: str):
-    if not path or not path.exists():
+def _image_part(data: bytes | None, mime: str):
+    if not data:
         return None
     from google.genai import types
 
-    return types.Part.from_bytes(data=path.read_bytes(), mime_type=mime or "application/octet-stream")
+    return types.Part.from_bytes(data=data, mime_type=mime or "application/octet-stream")
 
 
 ASK_RULES = """You are InvoiceSentinel's AP risk analyst assistant for a Philippine SME, reviewing ONE invoice before payment.
@@ -117,7 +110,7 @@ LANGUAGE: {lang}
 Return JSON: {{"answer": string (markdown allowed), "recommendation": "PAY"|"HOLD"|"VERIFY", "citations": [string], "language": string (language you replied in), "missing_info": [string]}}"""
 
 
-def ask(case: dict, evidence: dict, history: list[dict], question: str, language: str, image: Path | None) -> dict:
+def ask(case: dict, evidence: dict, history: list[dict], question: str, language: str, image: bytes | None) -> dict:
     lang = ("Reply in the same language/register the user wrote their latest question in (e.g. Tagalog → Tagalog, "
             "Taglish → Taglish, Cebuano → Cebuano, Thai → Thai). Keep codes, amounts, account numbers unchanged."
             if not language or language == "auto" else

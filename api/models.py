@@ -122,3 +122,5 @@ class HealthResponse(BaseModel):
     gemini_model: Optional[str] = None
     case_count: int = 0
     mode: str = "mock"
+    storage: str = "json"
+    agent: str = "google-adk"

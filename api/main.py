@@ -18,7 +18,9 @@ from analyzer import AnalysisUnavailable, analyze_invoice, gemini_configured, ge
 from models import ActionRequest, AnalyzeResponse, Case, DashboardStats, HealthResponse
 from storage import CaseStore
 from master import MasterStore, match_invoice, find_vendor
-from assistant import ChatStore, LANGUAGES, ask as ask_case, build_evidence, draft_email
+from assistant import ChatStore, LANGUAGES, build_evidence
+from agent import agent_ask, agent_draft_email
+from db import backend_name
 from pathlib import Path
 from compliance import SettingsStore, bir_checklist, validate_tin
 
@@ -58,6 +60,8 @@ def health() -> HealthResponse:
         gemini_model=gemini_model_name() if configured else None,
         case_count=len(store.list_cases()),
         mode="gemini" if configured else "mock",
+        storage=backend_name(),
+        agent="google-adk",
     )
 
 
@@ -160,7 +164,7 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
 
     case_id = f"case-{uuid.uuid4().hex[:10]}"
     ts = now_manila_iso()
-    store.save_upload(case_id, filename, content)
+    upload_ref = store.save_upload(case_id, filename, content, mime)
 
     case: dict[str, Any] = {
         "id": case_id,
@@ -170,6 +174,7 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
         "filename": filename,
         "mime_type": mime,
         "source": "upload",
+        "upload_ref": upload_ref,
         "extraction": analysis["extraction"],
         "risk_flags": analysis["risk_flags"],
         "overall_risk_score": analysis["overall_risk_score"],
@@ -258,10 +263,10 @@ def _case_ctx(case_id: str):
     vendors, pos = master.list_vendors(), master.list_pos()
     matching = case.get("matching") or match_invoice(case.get("extraction") or {}, vendors, pos)[0]
     ev = build_evidence(case, store.list_cases(), vendors, pos, matching)
-    safe = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in case.get("filename", ""))
-    img = Path(store.upload_dir) / f"{case_id}_{safe}"
+    img = store.load_upload(case)
     vendor, _ = find_vendor(vendors, (case.get("extraction") or {}).get("vendor", ""), (case.get("extraction") or {}).get("vendor_tin", ""))
-    return case, ev, (img if img.exists() else None), vendor
+    ctx = {"vendors": vendors, "pos": pos, "cases": store.list_cases(), "settings": settings_store.get(), "has_image": img is not None}
+    return case, ev, img, vendor, ctx
 
 
 @app.get("/api/settings")
@@ -305,9 +310,9 @@ def ask_endpoint(case_id: str, body: dict[str, Any]) -> dict[str, Any]:
         raise HTTPException(400, "Question is required")
     if not gemini_configured():
         raise HTTPException(503, "Ask the case needs Gemini (no API key configured)")
-    case, ev, img, _ = _case_ctx(case_id)
+    case, ev, img, _, ctx = _case_ctx(case_id)
     try:
-        res = ask_case(case, ev, chats.get(case_id), q[:2000], str(body.get("language") or "auto"), img)
+        res = agent_ask(case, ctx, chats.get(case_id), q[:2000], str(body.get("language") or "auto"), img)
     except AnalysisUnavailable as exc:
         logging.getLogger("invoicesentinel").warning("Ask failed: %s", str(exc)[:300])
         raise HTTPException(503, "Assistant unavailable, please retry")
@@ -321,9 +326,9 @@ def ask_endpoint(case_id: str, body: dict[str, Any]) -> dict[str, Any]:
 def draft_email_endpoint(case_id: str, body: dict[str, Any]) -> dict[str, Any]:
     if not gemini_configured():
         raise HTTPException(503, "Email drafting needs Gemini (no API key configured)")
-    case, ev, _, vendor = _case_ctx(case_id)
+    case, ev, _, vendor, ctx = _case_ctx(case_id)
     try:
-        return draft_email(case, ev, str(body.get("language") or "English"), vendor)
+        return agent_draft_email(case, ctx, str(body.get("language") or "English"))
     except AnalysisUnavailable as exc:
         logging.getLogger("invoicesentinel").warning("Draft failed: %s", str(exc)[:300])
         raise HTTPException(503, "Assistant unavailable, please retry")
