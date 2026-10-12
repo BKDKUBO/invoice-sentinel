@@ -95,6 +95,9 @@ export const RISK_LABELS: Record<string, string> = {
   VENDOR_TIN_MISMATCH: "TIN mismatch",
   MISSING_PO: "Missing PO",
   PO_MISMATCH: "PO mismatch",
+  TIN_INVALID: "Invalid TIN",
+  BIR_FORMAT_ISSUE: "BIR format",
+  SPLIT_INVOICE: "Split invoice",
 };
 
 export interface VerifiedAccount {
@@ -288,4 +291,42 @@ export async function draftEmail(id: string, language: string): Promise<EmailDra
   });
   if (res.status === 503) throw new Error(BUSY);
   return handle(res);
+}
+
+export interface BirItem {
+  key: string;
+  label: string;
+  ref: string;
+  status: "present" | "missing" | "unreadable" | "invalid" | "advisory";
+  required: boolean;
+  note: string;
+}
+
+export interface BirInfo {
+  tin: { value: string; valid: boolean; reason: string };
+  checklist: { items: BirItem[]; missing: string[]; advisory: string[]; document_type: string; seller_vat_registered: boolean } | null;
+}
+
+export interface Settings {
+  approval_limit: number;
+  split_window_days: number;
+  near_limit_pct: number;
+}
+
+export async function fetchBir(id: string): Promise<BirInfo> {
+  return handle(await fetch(`${API_URL}/api/cases/${id}/bir`, { cache: "no-store" }));
+}
+
+export async function fetchSettings(): Promise<Settings> {
+  return handle(await fetch(`${API_URL}/api/settings`, { cache: "no-store" }));
+}
+
+export async function saveSettings(s: Partial<Settings>): Promise<Settings> {
+  return handle(
+    await fetch(`${API_URL}/api/settings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(s),
+    })
+  );
 }

@@ -9,4 +9,5 @@ for p in files:
     c=j["case"]; e=c["extraction"]
     print(f"== {os.path.basename(p)} mode={j['mode']} {dt:.1f}s score={c['overall_risk_score']} sev={c['severity']}")
     print("  ", {k:e.get(k) for k in ("vendor","vendor_tin","invoice_number","po_number","payment","subtotal","tax","total")})
+    b=c.get("bir") or {}; print("   BIR missing:",b.get("missing"),"advisory:",b.get("advisory"),"doc:",b.get("document_type"))
     for f in c["risk_flags"]: print("   -",f["code"],f["severity"],"|",f["title"],"|",f["explanation"][:200])

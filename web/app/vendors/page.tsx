@@ -1,3 +1,4 @@
+import { SettingsCard } from "@/components/SettingsCard";
 import { VendorsManager } from "@/components/VendorsManager";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,7 @@ export default function VendorsPage() {
           restores it.
         </p>
       </div>
+      <SettingsCard />
       <VendorsManager />
     </div>
   );

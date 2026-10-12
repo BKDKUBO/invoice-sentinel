@@ -22,6 +22,9 @@ RiskCode = Literal[
     "VENDOR_TIN_MISMATCH",
     "MISSING_PO",
     "PO_MISMATCH",
+    "TIN_INVALID",
+    "BIR_FORMAT_ISSUE",
+    "SPLIT_INVOICE",
 ]
 
 
@@ -61,6 +64,9 @@ class Extraction(BaseModel):
     total: float = 0
     line_items: list[LineItem] = Field(default_factory=list)
     summary: str = ""
+    document_type: str = ""
+    seller_vat_registered: Optional[bool] = None
+    bir_elements: dict[str, str] = Field(default_factory=dict)
 
 
 class AuditEntry(BaseModel):
@@ -83,6 +89,7 @@ class Case(BaseModel):
     overall_risk_score: int = 0
     severity: Severity = "low"
     matching: Optional[dict[str, Any]] = None
+    bir: Optional[dict[str, Any]] = None
     audit_log: list[AuditEntry] = Field(default_factory=list)
 
 

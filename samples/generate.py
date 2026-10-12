@@ -60,7 +60,7 @@ cases["04-vat-math-wrong.png"]=render("",["Luzon Office Furniture Inc.","45 EDSA
 # 5 BEC bank change
 it=[("NCR last-mile delivery (Oct 1-15)",1,42000.0),("Warehouse handling fee",1,3000.0)]
 s,v,t=vat_inv(it)
-cases["05-bec-bank-change.png"]=render("",["Manila Bay Logistics Co.","Pier 4, North Harbor, Tondo, Manila","VAT Reg. TIN: 987-654-321-000"],
+cases["05-bec-bank-change.png"]=render("",["Manila Bay Logistics Co.","Pier 4, North Harbor, Tondo, Manila","VAT Reg. TIN: 413-206-985-000"],
  ["INVOICE No. MBL-4488","Date: 2026-10-07","Bill to: Ocana Trading OPC   PO No.: PO-2026-0142"],it,
  [("VATable Sales",peso(s),False),("VAT (12%)",peso(v),False),("TOTAL",peso(t),True)],
  notes=["IMPORTANT: Our BDO account is under audit. Please remit to our NEW account:","Union Bank Acct No. 1094-3321-8870, Acct Name: J. Dela Rosa. Do not call our office."],footer=foot("MBL-4001 to MBL-6000"))
@@ -72,7 +72,7 @@ cases["06-overbilled-bond-paper.png"]=render("",["Quickserve Office Depot","88 R
  [("VATable Sales",peso(s),False),("VAT (12%)",peso(v),False),("TOTAL AMOUNT DUE",peso(t),True)],footer=foot("0001-5000"))
 # 7 near duplicate of Acme seed (seed total 14000 incl tax). Reconstruct: subtotal 12500 + VAT 1500
 it=[("A4 Bond Paper (ream)",25,250.0),("Ballpoint Pens (box)",20,175.0),("Staplers & clips kit",10,275.0)]
-cases["07-near-duplicate-acme.png"]=render("",["Acme Office Supplies Inc.","210 Shaw Blvd., Mandaluyong City","VAT Reg. TIN: 123-456-789-000"],
+cases["07-near-duplicate-acme.png"]=render("",["Acme Office Supplies Inc.","210 Shaw Blvd., Mandaluyong City","VAT Reg. TIN: 204-318-557-000"],
  ["INVOICE No. INV-88427","Date: 2026-09-18","Bill to: Ocana Trading OPC"],it,
  [("VATable Sales",peso(12500),False),("VAT (12%)",peso(1500),False),("TOTAL",peso(14000),True)],footer=foot("INV-85001 to INV-90000"))
 # 9 known vendor, quietly changed bank account (no urgency words: only the vendor master catches it)
@@ -90,9 +90,19 @@ cases["10-exceeds-po-qty.png"]=render("",["Luzon Office Furniture Inc.","45 EDSA
 # 11 cites a PO that does not exist
 it=[("Whiteboard markers (box)",12,180.0),("Sticky notes 3x3 (pack)",30,45.0)]
 s,v,t=vat_inv(it)
-cases["11-nonexistent-po.png"]=render("",["Acme Office Supplies Inc.","210 Shaw Blvd., Mandaluyong City","VAT Reg. TIN: 123-456-789-000"],
+cases["11-nonexistent-po.png"]=render("",["Acme Office Supplies Inc.","210 Shaw Blvd., Mandaluyong City","VAT Reg. TIN: 204-318-557-000"],
  ["INVOICE No. INV-88502","Date: 2026-10-10","Bill to: Ocana Trading OPC   PO No.: PO-2026-0999","Pay to: BDO Acct 0012-3456-7890, Acme Office Supplies Inc."],it,
  [("VATable Sales",peso(s),False),("VAT (12%)",peso(v),False),("TOTAL",peso(t),True)],footer=foot("INV-85001 to INV-90000"))
+# 12/13 split invoice: two P48,000 invoices, same vendor, 2 days apart (approval limit P50,000)
+for n,(inv,dt,desc) in enumerate([("0003311","2026-10-08","Corporate event catering - Phase 1 (setup & AM)"),("0003318","2026-10-10","Corporate event catering - Phase 2 (PM & teardown)")]):
+    it=[(desc,1,42857.14)]; s_,v_,t_=vat_inv(it)
+    cases[f"{12+n}-split-invoice-{'a' if n==0 else 'b'}.png"]=render("",["Cebu Island Catering Services","88 Osmena Blvd., Cebu City","VAT Reg. TIN: 456-789-012-000"],
+     [f"SERVICE INVOICE No. {inv}",f"Date: {dt}","Sold to: Ocana Trading OPC   TIN: 498-221-307-000","Pay to: BPI Acct 3021-0098-77, Cebu Island Catering Services"],it,
+     [("VATable Sales",peso(s_),False),("VAT (12%)",peso(v_),False),("TOTAL AMOUNT DUE",peso(t_),True)],footer=foot("0001-5000"))
+# 14 malformed TIN + missing BIR elements (billing statement, no serial, no address, no VAT line)
+it=[("Janitorial services - October",1,18500.0)]
+cases["14-malformed-tin-no-bir.png"]=render("",["Metro Prime Janitorial","TIN 12-3456-789"],
+ ["BILLING STATEMENT","Date: 2026-10-09","To: Ocana Trading"],it,[("AMOUNT DUE",peso(18500),True)])
 for k,im in cases.items(): im.save(os.path.join(D,k))
 # 8 blurry photo of #1-like legit receipt
 im=cases["02-legit-small-vendor-receipt.png"].rotate(4,expand=True,fillcolor=(200,190,170))

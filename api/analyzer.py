@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 
 MANILA = ZoneInfo("Asia/Manila")
 
-RISK_SCHEMA_HINT = """
+RISK_SCHEMA_HINT_RAW = """
 Return ONLY valid JSON (no markdown) matching this schema:
 {
   "vendor": string,
@@ -27,6 +27,7 @@ Return ONLY valid JSON (no markdown) matching this schema:
   "total": number,
   "line_items": [{"description": string, "qty": number, "unit_price": number, "amount": number}],
   "summary": string (1-2 sentences),
+  __BIR__,
   "risk_flags": [{
     "code": one of GHOST_VENDOR|DUPLICATE_INVOICE|AMOUNT_MISMATCH|OVERBILLING|TEMPLATE_LOOKING|MATH_ERROR|UNUSUAL_PAYMENT_CHANGE|MISSING_FIELDS,
     "severity": low|medium|high|critical,
@@ -48,8 +49,14 @@ Calibration rules:
 - Requests to pay a new/different bank account, a personal name, or a personal e-wallet, or "don't call us" → UNUSUAL_PAYMENT_CHANGE (high or critical).
 - Same vendor + same total + same/similar date as an existing case but a different invoice number → DUPLICATE_INVOICE (near-duplicate).
 - A vendor whose TIN matches an existing case is a known vendor; do not flag its TIN pattern as GHOST_VENDOR.
+- Do not raise MISSING_FIELDS for BIR invoice elements (buyer TIN, VAT statement, ATP, serial, address); report those only in bir_elements. Use MISSING_FIELDS only for data needed to pay (amount, vendor name, invoice reference).
 - Extract the payment account and PO number exactly as printed; vendor-master and PO checks are done separately by the system, so do not guess them.
 """
+
+
+from compliance import BIR_SCHEMA_HINT  # noqa: E402
+
+RISK_SCHEMA_HINT = RISK_SCHEMA_HINT_RAW.replace("__BIR__", BIR_SCHEMA_HINT)
 
 
 class AnalysisUnavailable(RuntimeError):
@@ -153,7 +160,7 @@ def analyze_mock(filename: str, existing_cases: list[dict], master: tuple[list, 
         return _normalize_analysis(
             {
                 "vendor": "Acme Office Supplies Inc.",
-                "vendor_tin": "123-456-789-000",
+                "vendor_tin": "204-318-557-000",
                 "invoice_number": "INV-88421",
                 "date": "2026-09-18",
                 "currency": "PHP",
@@ -399,7 +406,21 @@ def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict], master
         "total": total,
         "line_items": norm_items,
         "summary": str(data.get("summary") or ""),
+        "document_type": str(data.get("document_type") or ""),
+        "seller_vat_registered": data.get("seller_vat_registered") if isinstance(data.get("seller_vat_registered"), bool) else None,
+        "bir_elements": {str(k): str(v) for k, v in (data.get("bir_elements") or {}).items()} if isinstance(data.get("bir_elements"), dict) else {},
     }
+
+    from compliance import DEFAULT_SETTINGS, bir_checklist, split_flag, tin_flag
+
+    tf = tin_flag(extraction["vendor_tin"])
+    if tf and not any(x["code"] == "TIN_INVALID" for x in flags):
+        flags.append(tf)
+    bir = bir_checklist(extraction)
+    if bir and bir["flag"] and not any(x["code"] == "BIR_FORMAT_ISSUE" for x in flags):
+        flags.append(bir["flag"])
+    if bir:
+        bir.pop("flag", None)
 
     matching = None
     if master is not None:
@@ -423,6 +444,21 @@ def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict], master
                 continue
             flags.append(mf)
 
+    from master import _norm_name, _tin9
+
+    settings = (master[2] if master is not None and len(master) > 2 else None) or DEFAULT_SETTINGS
+    vn, vt = _norm_name(vendor), _tin9(extraction["vendor_tin"])
+
+    def _same_vendor(ex: dict) -> bool:
+        return (bool(vn) and _norm_name(ex.get("vendor", "")) == vn) or (
+            len(vt) == 9 and vt != "000000000" and _tin9(ex.get("vendor_tin", "")) == vt)
+
+    sf = split_flag(extraction, existing_cases, settings, _same_vendor)
+    if sf:
+        # Gemini often labels the same pattern a near-duplicate; keep the more specific SPLIT_INVOICE
+        flags = [x for x in flags if not (x["code"] == "DUPLICATE_INVOICE" and not x["explanation"].startswith("Matches existing case"))]
+        flags.append(sf)
+
     score = int(data.get("overall_risk_score") or 0)
     if flags:
         # Score floor: the overall score should never read lower than the worst flag implies
@@ -433,6 +469,7 @@ def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict], master
     return {
         "extraction": extraction,
         "matching": matching,
+        "bir": bir,
         "risk_flags": flags,
         "overall_risk_score": score,
         "severity": score_to_severity(score),
