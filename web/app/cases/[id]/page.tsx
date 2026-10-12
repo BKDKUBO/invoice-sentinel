@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CaseActions } from "@/components/CaseActions";
 import { SeverityBadge, StatusBadge, RiskScore } from "@/components/SeverityBadge";
-import { fetchCase, formatPHP } from "@/lib/api";
+import { fetchCase, formatPHP, riskLabel } from "@/lib/api";
 import { severityBadge } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
@@ -127,7 +127,7 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
                         {f.severity}
                       </span>
                       <span className="rounded bg-white px-1.5 py-0.5 font-mono text-[10px] text-slate-600 ring-1 ring-slate-200">
-                        {f.code}
+                        {riskLabel(f.code)}
                       </span>
                       <span className="text-sm font-semibold text-navy-900">{f.title}</span>
                     </div>

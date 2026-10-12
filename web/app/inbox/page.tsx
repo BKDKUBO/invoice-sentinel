@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SeverityBadge, StatusBadge, RiskScore } from "@/components/SeverityBadge";
-import { fetchCases, formatPHP } from "@/lib/api";
+import { fetchCases, formatPHP, riskLabel } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +69,7 @@ export default async function InboxPage() {
                           key={f.code + f.title}
                           className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-700"
                         >
-                          {f.code}
+                          {riskLabel(f.code)}
                         </span>
                       ))}
                     </div>

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 import os
 import uuid
 from datetime import datetime, timedelta
@@ -12,7 +14,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from analyzer import analyze_invoice, gemini_configured, gemini_model_name, now_manila_iso
+from analyzer import AnalysisUnavailable, analyze_invoice, gemini_configured, gemini_model_name, now_manila_iso
 from models import ActionRequest, AnalyzeResponse, Case, DashboardStats, HealthResponse
 from storage import CaseStore
 
@@ -143,7 +145,11 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
         mime = "image/webp"
 
     existing = store.list_cases()
-    analysis, mode = analyze_invoice(content, mime, filename, existing)
+    try:
+        analysis, mode = analyze_invoice(content, mime, filename, existing)
+    except AnalysisUnavailable as exc:
+        logging.getLogger("invoicesentinel").warning("Gemini analysis failed: %s", str(exc)[:300])
+        raise HTTPException(503, "Analysis unavailable, please retry")
 
     case_id = f"case-{uuid.uuid4().hex[:10]}"
     ts = now_manila_iso()

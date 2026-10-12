@@ -72,6 +72,21 @@ export interface Health {
   mode: string;
 }
 
+export const RISK_LABELS: Record<string, string> = {
+  GHOST_VENDOR: "Ghost vendor",
+  DUPLICATE_INVOICE: "Duplicate invoice",
+  AMOUNT_MISMATCH: "Amount mismatch",
+  OVERBILLING: "Overbilling",
+  TEMPLATE_LOOKING: "Template-looking",
+  MATH_ERROR: "Math error",
+  UNUSUAL_PAYMENT_CHANGE: "Payment change",
+  MISSING_FIELDS: "Missing fields",
+};
+
+export function riskLabel(code: string): string {
+  return RISK_LABELS[code] ?? code;
+}
+
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const text = await res.text();
@@ -99,12 +114,13 @@ export async function fetchCase(id: string): Promise<Case> {
 export async function analyzeFile(file: File): Promise<{ case: Case; mode: string }> {
   const fd = new FormData();
   fd.append("file", file);
-  return handle(
-    await fetch(`${API_URL}/api/analyze`, {
-      method: "POST",
-      body: fd,
-    })
-  );
+  const res = await fetch(`${API_URL}/api/analyze`, { method: "POST", body: fd });
+  if (res.status === 503) {
+    throw new Error(
+      "The AI analyzer is busy right now and couldn't check this invoice. Nothing was saved — please try again in a few seconds."
+    );
+  }
+  return handle(res);
 }
 
 export async function postAction(

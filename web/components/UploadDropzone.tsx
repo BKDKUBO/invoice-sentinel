@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { analyzeFile } from "@/lib/api";
 
@@ -9,12 +9,14 @@ export function UploadDropzone() {
   const [drag, setDrag] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const lastFile = useRef<FileList | null>(null);
   const [mode, setMode] = useState<string | null>(null);
 
   const onFiles = useCallback(
     async (files: FileList | null) => {
       if (!files?.length) return;
       const file = files[0];
+      lastFile.current = files;
       setError(null);
       setBusy(true);
       try {
@@ -76,6 +78,13 @@ export function UploadDropzone() {
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
           {error}
+          <button
+            type="button"
+            onClick={() => lastFile.current && onFiles(lastFile.current)}
+            className="ml-2 font-medium underline"
+          >
+            Retry
+          </button>
         </div>
       )}
       {mode && (

@@ -25,7 +25,7 @@ Return ONLY valid JSON (no markdown) matching this schema:
   "line_items": [{"description": string, "qty": number, "unit_price": number, "amount": number}],
   "summary": string (1-2 sentences),
   "risk_flags": [{
-    "code": one of GHOST_VENDOR|DUPLICATE_INVOICE|AMOUNT_MISMATCH|TEMPLATE_LOOKING|MATH_ERROR|UNUSUAL_PAYMENT_CHANGE|MISSING_FIELDS,
+    "code": one of GHOST_VENDOR|DUPLICATE_INVOICE|AMOUNT_MISMATCH|OVERBILLING|TEMPLATE_LOOKING|MATH_ERROR|UNUSUAL_PAYMENT_CHANGE|MISSING_FIELDS,
     "severity": low|medium|high|critical,
     "title": string,
     "explanation": string,
@@ -41,11 +41,18 @@ Calibration rules:
 - A complete, internally consistent invoice (real-looking TIN, address, ATP/series, correct 12% VAT) should score 0-20 with no flags. Plain or computer-generated layout alone is NOT a risk; do not raise TEMPLATE_LOOKING for that alone.
 - Low image quality (blur, skew, dim photo) is not fraud. If a field is unreadable, lower confidence in the summary instead of flagging; only use MISSING_FIELDS for fields actually absent.
 - Small non-VAT vendor receipts without customer TIN/terms are normal in PH; don't flag missing customer details.
-- Unit prices far above typical PH market prices for common goods → AMOUNT_MISMATCH titled as overbilling, with the typical price range as evidence.
+- Unit prices far above typical PH market prices for common goods/services → OVERBILLING (not AMOUNT_MISMATCH), with the typical price range as evidence. AMOUNT_MISMATCH is only for totals that do not add up.
 - Requests to pay a new/different bank account, a personal name, or a personal e-wallet, or "don't call us" → UNUSUAL_PAYMENT_CHANGE (high or critical).
 - Same vendor + same total + same/similar date as an existing case but a different invoice number → DUPLICATE_INVOICE (near-duplicate).
 - A vendor whose TIN matches an existing case is a known vendor; do not flag its TIN pattern as GHOST_VENDOR.
 """
+
+
+class AnalysisUnavailable(RuntimeError):
+    """Gemini is configured but analysis failed after retries."""
+
+
+_OVERBILL_WORDS = ("overbill", "over-bill", "overpric", "inflated", "above market", "market price")
 
 
 def now_manila_iso() -> str:
@@ -305,6 +312,12 @@ def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict]) -> dic
             }
         )
 
+    for f in flags:
+        if f["code"] == "AMOUNT_MISMATCH" and any(
+            w in (f["title"] + " " + f["explanation"]).lower() for w in _OVERBILL_WORDS
+        ):
+            f["code"] = "OVERBILLING"
+
     vendor = str(data.get("vendor") or "Unknown")
     inv = str(data.get("invoice_number") or "")
     total = float(data.get("total") or 0)
@@ -398,10 +411,7 @@ def analyze_invoice(
     if gemini_configured():
         try:
             return analyze_with_gemini(file_bytes, mime_type, filename, existing_cases), "gemini"
-        except Exception as exc:  # noqa: BLE001 — fall back for demo resilience
-            mock = analyze_mock(filename, existing_cases)
-            mock["extraction"]["summary"] = (
-                f"(Gemini failed: {exc}; used mock analyzer) " + mock["extraction"].get("summary", "")
-            )
-            return mock, "mock"
+        except Exception as exc:  # noqa: BLE001
+            # Never fabricate a case when live analysis was expected.
+            raise AnalysisUnavailable(str(exc)) from exc
     return analyze_mock(filename, existing_cases), "mock"
