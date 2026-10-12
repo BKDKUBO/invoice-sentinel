@@ -1,9 +1,9 @@
 [
-  {"id": "V-001", "name": "Acme Office Supplies Inc.", "tin": "123-456-789-000", "address": "210 Shaw Blvd., Mandaluyong City",
+  {"id": "V-001", "name": "Acme Office Supplies Inc.", "tin": "204-318-557-000", "address": "210 Shaw Blvd., Mandaluyong City",
    "vat_registered": true, "contact": {"name": "Liza Ramos", "phone": "(02) 8555-0123", "email": "ar@acme-office.example"},
    "verified_accounts": [{"method": "bank", "bank": "BDO", "account_number": "0012-3456-7890", "account_name": "Acme Office Supplies Inc."}],
    "status": "approved", "notes": "Office consumables, monthly"},
-  {"id": "V-002", "name": "Manila Bay Logistics Co.", "tin": "987-654-321-000", "address": "Pier 4, North Harbor, Tondo, Manila",
+  {"id": "V-002", "name": "Manila Bay Logistics Co.", "tin": "413-206-985-000", "address": "Pier 4, North Harbor, Tondo, Manila",
    "vat_registered": true, "contact": {"name": "Ramon Cruz", "phone": "(02) 8555-0456", "email": "billing@manilabaylogistics.example"},
    "verified_accounts": [{"method": "bank", "bank": "BDO", "account_number": "0045-6612-3307", "account_name": "Manila Bay Logistics Co."}],
    "status": "approved", "notes": "Last-mile delivery and warehousing"},

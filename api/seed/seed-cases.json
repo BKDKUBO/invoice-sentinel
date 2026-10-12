@@ -9,7 +9,7 @@
     "source": "seed",
     "extraction": {
       "vendor": "Acme Office Supplies Inc.",
-      "vendor_tin": "123-456-789-000",
+      "vendor_tin": "204-318-557-000",
       "invoice_number": "INV-88421",
       "date": "2026-09-18",
       "currency": "PHP",
@@ -45,7 +45,7 @@
     "source": "seed",
     "extraction": {
       "vendor": "Manila Bay Logistics Co.",
-      "vendor_tin": "987-654-321-000",
+      "vendor_tin": "413-206-985-000",
       "invoice_number": "MBL-4410",
       "date": "2026-09-20",
       "currency": "PHP",
@@ -80,7 +80,7 @@
     "source": "seed",
     "extraction": {
       "vendor": "Acme Office Supplies Inc.",
-      "vendor_tin": "123-456-789-000",
+      "vendor_tin": "204-318-557-000",
       "invoice_number": "INV-88421",
       "date": "2026-09-18",
       "currency": "PHP",

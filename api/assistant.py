@@ -70,6 +70,7 @@ def build_evidence(case: dict, cases: list[dict], vendors: list[dict], pos: list
         "E5_purchase_order": po or (f"NOT FOUND — {ex['po_number']} does not exist" if ex.get("po_number") else "No PO cited on invoice"),
         "E6_vendor_history": history or "No other invoices from this vendor on file",
         "E7_master_match_checks": (matching or {}).get("checks", []),
+        "E8_bir_compliance_checklist": case.get("bir") or "Not extracted for this case (seed/legacy case)",
     }
 
 
@@ -106,7 +107,7 @@ def _image_part(path: Path | None, mime: str):
 
 
 ASK_RULES = """You are InvoiceSentinel's AP risk analyst assistant for a Philippine SME, reviewing ONE invoice before payment.
-Answer ONLY from the evidence pack (E1-E7) and the attached invoice image (cite it as IMG). Do not use outside facts about this vendor.
+Answer ONLY from the evidence pack (E1-E8) and the attached invoice image (cite it as IMG). Do not use outside facts about this vendor.
 - Cite evidence IDs in square brackets after each point, e.g. [E4], [E2: UNUSUAL_PAYMENT_CHANGE], [IMG].
 - If the evidence doesn't contain the answer, say so plainly ("Not in the evidence: …") and say what document would answer it.
 - Never tell the user to contact the vendor using phone/email/bank details printed on the invoice; only use contact details from E4.

@@ -20,6 +20,7 @@ from storage import CaseStore
 from master import MasterStore, match_invoice, find_vendor
 from assistant import ChatStore, LANGUAGES, ask as ask_case, build_evidence, draft_email
 from pathlib import Path
+from compliance import SettingsStore, bir_checklist, validate_tin
 
 load_dotenv()
 # Also load monorepo root .env if present
@@ -30,6 +31,7 @@ MANILA = ZoneInfo("Asia/Manila")
 store = CaseStore()
 master = MasterStore()
 chats = ChatStore()
+settings_store = SettingsStore()
 
 app = FastAPI(
     title="InvoiceSentinel API",
@@ -151,7 +153,7 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
 
     existing = store.list_cases()
     try:
-        analysis, mode = analyze_invoice(content, mime, filename, existing, (master.list_vendors(), master.list_pos()))
+        analysis, mode = analyze_invoice(content, mime, filename, existing, (master.list_vendors(), master.list_pos(), settings_store.get()))
     except AnalysisUnavailable as exc:
         logging.getLogger("invoicesentinel").warning("Gemini analysis failed: %s", str(exc)[:300])
         raise HTTPException(503, "Analysis unavailable, please retry")
@@ -173,6 +175,7 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
         "overall_risk_score": analysis["overall_risk_score"],
         "severity": analysis["severity"],
         "matching": analysis.get("matching"),
+        "bir": analysis.get("bir"),
         "audit_log": [
             {
                 "at": ts,
@@ -230,6 +233,7 @@ def reset_demo() -> dict[str, Any]:
     n = store.reset_from_seed()
     m = master.reset_from_seed()
     chats.clear()
+    settings_store.reset()
     return {"ok": True, "case_count": n, "vendor_count": m["vendors"], "po_count": m["pos"],
             "message": "Restored seed cases, vendor master and POs"}
 
@@ -257,6 +261,30 @@ def _case_ctx(case_id: str):
     img = Path(store.upload_dir) / f"{case_id}_{safe}"
     vendor, _ = find_vendor(vendors, (case.get("extraction") or {}).get("vendor", ""), (case.get("extraction") or {}).get("vendor_tin", ""))
     return case, ev, (img if img.exists() else None), vendor
+
+
+@app.get("/api/settings")
+def get_settings() -> dict[str, Any]:
+    return settings_store.get()
+
+
+@app.post("/api/settings")
+def set_settings(body: dict[str, Any]) -> dict[str, Any]:
+    try:
+        return settings_store.update(body)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(400, str(exc))
+
+
+@app.get("/api/cases/{case_id}/bir")
+def case_bir(case_id: str) -> dict[str, Any]:
+    case = store.get_case(case_id)
+    if not case:
+        raise HTTPException(404, "Case not found")
+    ex = case.get("extraction") or {}
+    ok, why = validate_tin(ex.get("vendor_tin", ""))
+    bir = case.get("bir") or bir_checklist(ex)
+    return {"tin": {"value": ex.get("vendor_tin", ""), "valid": ok, "reason": why}, "checklist": bir}
 
 
 @app.get("/api/languages")

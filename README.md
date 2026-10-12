@@ -189,6 +189,31 @@ Each case page has an **Ask the case** panel (`POST /api/cases/{id}/ask`, histor
 
 Screenshots: `docs/proposal/assets/ask-*.png`.
 
+## BIR / TIN compliance checks & split-invoice detection
+
+**TIN format (`TIN_INVALID`, deterministic, `api/compliance.py`).** Seller TIN must be 9 digits (NNN-NNN-NNN) plus an optional 3- or 5-digit branch code (RR 7-2024 example: `VAT Reg TIN 123-456-789-00000`). Malformed → medium; placeholders (repeated digit such as 000-000-000, or BIR's own sample TINs 123-456-789 / 987-654-321) → high. (Seed vendors Acme and Manila Bay were re-numbered so no demo vendor uses a BIR sample TIN.)
+
+**BIR invoice elements (`BIR_FORMAT_ISSUE`, Gemini extraction + deterministic rules).** Gemini marks each element present / missing / unreadable; the rules below decide what's required. Shown on each case as a **BIR compliance checklist** panel (`GET /api/cases/{id}/bir`) and fed into Ask-the-case as evidence **E8**.
+
+| Element | Rule | Required when |
+|---|---|---|
+| Title contains "Invoice" (Sales/Service/Cash/Charge…) | RR 7-2024 §6(B)(4) | always (Official Receipts are supplementary post-EOPT; advisory only for small non-VAT receipts < ₱5,000) |
+| Seller registered name | §6(B)(1) | always |
+| "VAT Reg." / "Non-VAT Reg." statement + TIN & branch code | §6(B)(2) | always |
+| Registered business address | §6(B)(3) | always |
+| Date of transaction | §6(B)(5) | always |
+| Serial number | §6(B)(7) | always |
+| Buyer registered name, address, TIN | §6(B)(6); NIRC Sec. 113(B)(4) as amended | VAT seller and sale ≥ ₱1,000 (checklist only; not flagged if it's the only gap) |
+| Quantity, unit cost, description | §6(B)(8)-(10); NIRC Sec. 237 | always |
+| VAT shown separately; VATable / exempt / zero-rated breakdown | §6(B)(11)-(13) | VAT-registered seller |
+| ATP / CAS permit / accredited printer details | printing rules (RR 18-2012, RR 7-2024 §6) | advisory only |
+
+Severity is **low** (1-2 gaps) or **medium** (≥3 gaps, or ≥2 including a core element). Unreadable elements on blurry photos are never counted as missing. This is a format check, not BIR certification.
+
+Sources: RR No. 7-2024 (EOPT invoicing rules, full text: https://mlaguirreco.com/wp-content/uploads/2024/06/RR-No.7-2024.eopt_.invoicing-requirements.pdf), BIR RMC No. 77-2024 Q&A on invoicing under EOPT (https://bir-cdn.bir.gov.ph/BIR/pdf/RMC%20No.%2077-2024.pdf), BIR "Ease of Paying Taxes" registration/invoicing briefing, Apr 2024 (https://www.pagba.com/wp-content/uploads/2024/09/A-TOT_RR-on-Registration-For-PAGBA.pdf). Retrieved Oct 12, 2026.
+
+**Split invoices (`SPLIT_INVOICE`, high).** Settings on the **Vendors & POs** page (`GET/POST /api/settings`): approval limit (default ₱50,000), window (default 7 days), "just under limit" band (default 10%). Flags when the same vendor (name or TIN) has 2+ invoices within the window, each below the limit, whose combined total exceeds it — or all sit just under the limit. Evidence lists every related invoice/case. Samples: `12-split-invoice-a.png` + `13-split-invoice-b.png` (two ₱48,000 catering invoices, 2 days apart), `14-malformed-tin-no-bir.png`.
+
 ## API surface
 
 | Method | Path | Purpose |

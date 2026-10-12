@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { CaseActions } from "@/components/CaseActions";
 import { SeverityBadge, StatusBadge, RiskScore } from "@/components/SeverityBadge";
 import { AskCase } from "@/components/AskCase";
+import { BirPanel } from "@/components/BirPanel";
 import { MatchingPanel } from "@/components/MatchingPanel";
-import { fetchCase, fetchMatching, formatPHP, riskLabel, type Matching } from "@/lib/api";
+import { fetchCase, fetchBir, fetchMatching, formatPHP, type BirInfo, riskLabel, type Matching } from "@/lib/api";
 import { severityBadge } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,12 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
     matching = null;
   }
   const pay = ex.payment;
+  let bir: BirInfo | null = null;
+  try {
+    bir = await fetchBir(c.id);
+  } catch {
+    bir = null;
+  }
 
   return (
     <div className="space-y-6">
@@ -119,6 +126,8 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
           <AskCase caseId={c.id} />
 
           <MatchingPanel m={matching} />
+
+          <BirPanel b={bir} />
 
           <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="text-sm font-semibold text-navy-900">Explainable risk cards</h2>
