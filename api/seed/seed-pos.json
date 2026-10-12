@@ -1,0 +1,164 @@
+[
+  {
+    "po_number": "PO-2026-0131",
+    "vendor_id": "V-001",
+    "vendor": "Acme Office Supplies Inc.",
+    "date": "2026-09-10",
+    "status": "open",
+    "items": [
+      {
+        "description": "A4 Bond Paper (ream)",
+        "qty": 20,
+        "unit_price": 250
+      },
+      {
+        "description": "Ballpoint Pens (box)",
+        "qty": 50,
+        "unit_price": 80
+      },
+      {
+        "description": "Staplers & clips kit",
+        "qty": 10,
+        "unit_price": 350
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-0139",
+    "vendor_id": "V-007",
+    "vendor": "Quickserve Office Depot",
+    "date": "2026-09-28",
+    "status": "open",
+    "items": [
+      {
+        "description": "A4 Bond Paper 70gsm (ream)",
+        "qty": 20,
+        "unit_price": 245
+      },
+      {
+        "description": "Ballpoint pens (box of 12)",
+        "qty": 10,
+        "unit_price": 95
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-0142",
+    "vendor_id": "V-002",
+    "vendor": "Manila Bay Logistics Co.",
+    "date": "2026-09-30",
+    "status": "open",
+    "items": [
+      {
+        "description": "NCR last-mile delivery (Oct 1-15)",
+        "qty": 1,
+        "unit_price": 42000
+      },
+      {
+        "description": "Warehouse handling fee",
+        "qty": 1,
+        "unit_price": 3000
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-0145",
+    "vendor_id": "V-004",
+    "vendor": "Northstar IT Supplies Corp.",
+    "date": "2026-10-01",
+    "status": "open",
+    "items": [
+      {
+        "description": "Laptop docking station USB-C",
+        "qty": 4,
+        "unit_price": 4850
+      },
+      {
+        "description": "27in IPS monitor",
+        "qty": 2,
+        "unit_price": 9450
+      },
+      {
+        "description": "HDMI cable 2m",
+        "qty": 6,
+        "unit_price": 320
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-0148",
+    "vendor_id": "V-006",
+    "vendor": "Luzon Office Furniture Inc.",
+    "date": "2026-10-01",
+    "status": "open",
+    "items": [
+      {
+        "description": "Office chair ergonomic",
+        "qty": 10,
+        "unit_price": 3200
+      },
+      {
+        "description": "Steel filing cabinet 4-drawer",
+        "qty": 3,
+        "unit_price": 6800
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-0152",
+    "vendor_id": "V-006",
+    "vendor": "Luzon Office Furniture Inc.",
+    "date": "2026-10-04",
+    "status": "open",
+    "items": [
+      {
+        "description": "Office chair ergonomic",
+        "qty": 10,
+        "unit_price": 3200
+      },
+      {
+        "description": "Conference table 8-seater",
+        "qty": 1,
+        "unit_price": 18500
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-0155",
+    "vendor_id": "V-001",
+    "vendor": "Acme Office Supplies Inc.",
+    "date": "2026-10-06",
+    "status": "open",
+    "items": [
+      {
+        "description": "Whiteboard markers (box)",
+        "qty": 12,
+        "unit_price": 180
+      },
+      {
+        "description": "Sticky notes 3x3 (pack)",
+        "qty": 30,
+        "unit_price": 45
+      }
+    ]
+  },
+  {
+    "po_number": "PO-2026-0158",
+    "vendor_id": "V-004",
+    "vendor": "Northstar IT Supplies Corp.",
+    "date": "2026-10-07",
+    "status": "open",
+    "items": [
+      {
+        "description": "Wireless keyboard + mouse combo",
+        "qty": 3,
+        "unit_price": 1250
+      },
+      {
+        "description": "24-port gigabit network switch",
+        "qty": 1,
+        "unit_price": 8900
+      }
+    ]
+  }
+]

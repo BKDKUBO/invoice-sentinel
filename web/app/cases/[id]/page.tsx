@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CaseActions } from "@/components/CaseActions";
 import { SeverityBadge, StatusBadge, RiskScore } from "@/components/SeverityBadge";
-import { fetchCase, formatPHP, riskLabel } from "@/lib/api";
+import { MatchingPanel } from "@/components/MatchingPanel";
+import { fetchCase, fetchMatching, formatPHP, riskLabel, type Matching } from "@/lib/api";
 import { severityBadge } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,13 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
   }
 
   const ex = c.extraction;
+  let matching: Matching | null = null;
+  try {
+    matching = await fetchMatching(c.id);
+  } catch {
+    matching = null;
+  }
+  const pay = ex.payment;
 
   return (
     <div className="space-y-6">
@@ -49,6 +57,8 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
                 ["Vendor", ex.vendor],
                 ["TIN", ex.vendor_tin || "—"],
                 ["Invoice #", ex.invoice_number || "—"],
+                ["PO #", ex.po_number || "—"],
+                ["Pay to", pay?.account_number ? `${pay.bank} ${pay.account_number} (${pay.account_name || "—"})` : "—"],
                 ["Date", ex.date || "—"],
                 ["Currency", ex.currency],
                 ["Subtotal", formatPHP(ex.subtotal, ex.currency)],
@@ -104,6 +114,8 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
               </table>
             </div>
           </section>
+
+          <MatchingPanel m={matching} />
 
           <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="text-sm font-semibold text-navy-900">Explainable risk cards</h2>

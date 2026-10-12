@@ -33,3 +33,5 @@ credentials.json
 service-account*.json
 *.tsbuildinfo
 docs/proposal/_print.html
+data/vendors.json
+data/pos.json

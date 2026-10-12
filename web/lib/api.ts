@@ -18,10 +18,20 @@ export interface RiskFlag {
   evidence: string;
 }
 
+export interface Payment {
+  method: string;
+  bank: string;
+  account_number: string;
+  account_name: string;
+}
+
 export interface Extraction {
   vendor: string;
   vendor_tin: string;
+  vendor_address?: string;
   invoice_number: string;
+  po_number?: string;
+  payment?: Payment;
   date: string;
   currency: string;
   subtotal: number;
@@ -81,7 +91,88 @@ export const RISK_LABELS: Record<string, string> = {
   MATH_ERROR: "Math error",
   UNUSUAL_PAYMENT_CHANGE: "Payment change",
   MISSING_FIELDS: "Missing fields",
+  UNKNOWN_VENDOR: "Unknown vendor",
+  VENDOR_TIN_MISMATCH: "TIN mismatch",
+  MISSING_PO: "Missing PO",
+  PO_MISMATCH: "PO mismatch",
 };
+
+export interface VerifiedAccount {
+  method: string;
+  bank: string;
+  account_number: string;
+  account_name: string;
+}
+
+export interface Vendor {
+  id?: string;
+  name: string;
+  tin: string;
+  address: string;
+  vat_registered?: boolean;
+  contact: { name?: string; phone?: string; email?: string };
+  verified_accounts: VerifiedAccount[];
+  status?: string;
+  notes?: string;
+}
+
+export interface POItem {
+  description: string;
+  qty: number;
+  unit_price: number;
+}
+
+export interface PurchaseOrder {
+  po_number?: string;
+  vendor_id: string;
+  vendor?: string;
+  date: string;
+  status?: string;
+  items: POItem[];
+  subtotal?: number;
+}
+
+export interface MatchCheck {
+  label: string;
+  status: "pass" | "fail" | "info";
+  expected: string;
+  found: string;
+}
+
+export interface Matching {
+  vendor_match: { id: string; name: string; how: string } | null;
+  po_match: { po_number: string; subtotal: number } | null;
+  checks: MatchCheck[];
+  live?: boolean;
+  suggested_flags?: RiskFlag[];
+}
+
+export async function fetchMatching(id: string): Promise<Matching> {
+  return handle(await fetch(`${API_URL}/api/cases/${id}/matching`, { cache: "no-store" }));
+}
+
+export async function fetchVendors(): Promise<Vendor[]> {
+  return handle(await fetch(`${API_URL}/api/vendors`, { cache: "no-store" }));
+}
+
+export async function fetchPOs(): Promise<PurchaseOrder[]> {
+  return handle(await fetch(`${API_URL}/api/pos`, { cache: "no-store" }));
+}
+
+async function send<T>(path: string, method: string, body?: unknown): Promise<T> {
+  return handle(
+    await fetch(`${API_URL}${path}`, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+  );
+}
+
+export const saveVendor = (v: Vendor) => send<Vendor>("/api/vendors", "POST", v);
+export const deleteVendor = (id: string) => send<{ ok: boolean }>(`/api/vendors/${encodeURIComponent(id)}`, "DELETE");
+export const savePO = (p: PurchaseOrder) => send<PurchaseOrder>("/api/pos", "POST", p);
+export const deletePO = (n: string) => send<{ ok: boolean }>(`/api/pos/${encodeURIComponent(n)}`, "DELETE");
 
 export function riskLabel(code: string): string {
   return RISK_LABELS[code] ?? code;

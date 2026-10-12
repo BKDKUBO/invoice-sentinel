@@ -16,7 +16,10 @@ Return ONLY valid JSON (no markdown) matching this schema:
 {
   "vendor": string,
   "vendor_tin": string,
+  "vendor_address": string,
   "invoice_number": string,
+  "po_number": string (purchase order number referenced on the invoice, e.g. "PO-2026-0145"; "" if none),
+  "payment": {"method": "bank"|"gcash"|"maya"|"check"|"cash"|"", "bank": string, "account_number": string, "account_name": string} (the account the invoice asks to be paid to; empty strings if not stated),
   "date": string (YYYY-MM-DD if possible),
   "currency": string (prefer PHP),
   "subtotal": number,
@@ -45,6 +48,7 @@ Calibration rules:
 - Requests to pay a new/different bank account, a personal name, or a personal e-wallet, or "don't call us" → UNUSUAL_PAYMENT_CHANGE (high or critical).
 - Same vendor + same total + same/similar date as an existing case but a different invoice number → DUPLICATE_INVOICE (near-duplicate).
 - A vendor whose TIN matches an existing case is a known vendor; do not flag its TIN pattern as GHOST_VENDOR.
+- Extract the payment account and PO number exactly as printed; vendor-master and PO checks are done separately by the system, so do not guess them.
 """
 
 
@@ -91,7 +95,7 @@ def _parse_json_loose(text: str) -> dict[str, Any]:
         raise
 
 
-def analyze_with_gemini(file_bytes: bytes, mime_type: str, filename: str, existing_cases: list[dict]) -> dict[str, Any]:
+def analyze_with_gemini(file_bytes: bytes, mime_type: str, filename: str, existing_cases: list[dict], master: tuple[list, list] | None = None) -> dict[str, Any]:
     from google import genai
     from google.genai import types
 
@@ -137,10 +141,10 @@ def analyze_with_gemini(file_bytes: bytes, mime_type: str, filename: str, existi
                 continue
             raise
     data = _parse_json_loose(response.text or "{}")
-    return _normalize_analysis(data, existing_cases)
+    return _normalize_analysis(data, existing_cases, master)
 
 
-def analyze_mock(filename: str, existing_cases: list[dict]) -> dict[str, Any]:
+def analyze_mock(filename: str, existing_cases: list[dict], master: tuple[list, list] | None = None) -> dict[str, Any]:
     """Heuristic analyzer for demo without GEMINI_API_KEY."""
     name = filename.lower()
 
@@ -174,6 +178,7 @@ def analyze_mock(filename: str, existing_cases: list[dict]) -> dict[str, Any]:
                 "overall_risk_score": 78,
             },
             existing_cases,
+            master,
         )
 
     if "ghost" in name or "rapid" in name or "fictitious" in name:
@@ -210,6 +215,7 @@ def analyze_mock(filename: str, existing_cases: list[dict]) -> dict[str, Any]:
                 "overall_risk_score": 92,
             },
             existing_cases,
+            master,
         )
 
     if "math" in name or "mismatch" in name or "error" in name:
@@ -247,6 +253,7 @@ def analyze_mock(filename: str, existing_cases: list[dict]) -> dict[str, Any]:
                 "overall_risk_score": 81,
             },
             existing_cases,
+            master,
         )
 
     # Default: relatively clean invoice derived from filename
@@ -273,6 +280,7 @@ def analyze_mock(filename: str, existing_cases: list[dict]) -> dict[str, Any]:
             "overall_risk_score": 15,
         },
         existing_cases,
+        master,
     )
 
 
@@ -283,7 +291,7 @@ def Path_stem(filename: str) -> str:
     return base
 
 
-def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict]) -> dict[str, Any]:
+def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict], master: tuple[list, list] | None = None) -> dict[str, Any]:
     line_items = data.get("line_items") or []
     norm_items = []
     for li in line_items:
@@ -375,6 +383,46 @@ def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict]) -> dic
                     }
                 )
 
+    pay = data.get("payment") if isinstance(data.get("payment"), dict) else {}
+    payment = {k: str(pay.get(k) or "") for k in ("method", "bank", "account_number", "account_name")}
+    extraction = {
+        "vendor": vendor,
+        "vendor_tin": str(data.get("vendor_tin") or ""),
+        "vendor_address": str(data.get("vendor_address") or ""),
+        "invoice_number": inv,
+        "po_number": str(data.get("po_number") or ""),
+        "payment": payment,
+        "date": str(data.get("date") or ""),
+        "currency": str(data.get("currency") or "PHP"),
+        "subtotal": float(data.get("subtotal") or 0),
+        "tax": tax,
+        "total": total,
+        "line_items": norm_items,
+        "summary": str(data.get("summary") or ""),
+    }
+
+    matching = None
+    if master is not None:
+        from master import match_invoice
+
+        matching, mflags = match_invoice(extraction, master[0], master[1])
+        rank = {"low": 0, "medium": 1, "high": 2, "critical": 3}
+        for mf in mflags:
+            if mf["code"] == "UNKNOWN_VENDOR":
+                ghost = next((x for x in flags if x["code"] == "GHOST_VENDOR"), None)
+                if ghost:  # strengthen existing ghost flag instead of duplicating
+                    ghost["explanation"] += " Not found in the approved-vendor master."
+                    ghost["evidence"] = (ghost["evidence"] + " | " if ghost["evidence"] else "") + "vendor master: no match"
+                    if rank.get(ghost["severity"], 1) < 2:
+                        ghost["severity"] = "high"
+                    continue
+            same = next((x for x in flags if x["code"] == mf["code"]), None)
+            if same and mf["code"] == "UNUSUAL_PAYMENT_CHANGE":
+                same.update(severity="critical", title=mf["title"],
+                            explanation=mf["explanation"] + " " + same["explanation"], evidence=mf["evidence"])
+                continue
+            flags.append(mf)
+
     score = int(data.get("overall_risk_score") or 0)
     if flags:
         # Score floor: the overall score should never read lower than the worst flag implies
@@ -383,18 +431,8 @@ def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict]) -> dic
     score = max(0, min(100, score))
 
     return {
-        "extraction": {
-            "vendor": vendor,
-            "vendor_tin": str(data.get("vendor_tin") or ""),
-            "invoice_number": inv,
-            "date": str(data.get("date") or ""),
-            "currency": str(data.get("currency") or "PHP"),
-            "subtotal": float(data.get("subtotal") or 0),
-            "tax": tax,
-            "total": total,
-            "line_items": norm_items,
-            "summary": str(data.get("summary") or ""),
-        },
+        "extraction": extraction,
+        "matching": matching,
         "risk_flags": flags,
         "overall_risk_score": score,
         "severity": score_to_severity(score),
@@ -406,12 +444,13 @@ def analyze_invoice(
     mime_type: str,
     filename: str,
     existing_cases: list[dict],
+    master: tuple[list, list] | None = None,
 ) -> tuple[dict[str, Any], str]:
     """Returns (analysis_dict, mode) where mode is 'gemini' or 'mock'."""
     if gemini_configured():
         try:
-            return analyze_with_gemini(file_bytes, mime_type, filename, existing_cases), "gemini"
+            return analyze_with_gemini(file_bytes, mime_type, filename, existing_cases, master), "gemini"
         except Exception as exc:  # noqa: BLE001
             # Never fabricate a case when live analysis was expected.
             raise AnalysisUnavailable(str(exc)) from exc
-    return analyze_mock(filename, existing_cases), "mock"
+    return analyze_mock(filename, existing_cases, master), "mock"

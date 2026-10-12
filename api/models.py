@@ -18,6 +18,10 @@ RiskCode = Literal[
     "MATH_ERROR",
     "UNUSUAL_PAYMENT_CHANGE",
     "MISSING_FIELDS",
+    "UNKNOWN_VENDOR",
+    "VENDOR_TIN_MISMATCH",
+    "MISSING_PO",
+    "PO_MISMATCH",
 ]
 
 
@@ -36,10 +40,20 @@ class RiskFlag(BaseModel):
     evidence: str = ""
 
 
+class Payment(BaseModel):
+    method: str = ""
+    bank: str = ""
+    account_number: str = ""
+    account_name: str = ""
+
+
 class Extraction(BaseModel):
     vendor: str = ""
     vendor_tin: str = ""
+    vendor_address: str = ""
     invoice_number: str = ""
+    po_number: str = ""
+    payment: Payment = Field(default_factory=Payment)
     date: str = ""
     currency: str = "PHP"
     subtotal: float = 0
@@ -68,6 +82,7 @@ class Case(BaseModel):
     risk_flags: list[RiskFlag] = Field(default_factory=list)
     overall_risk_score: int = 0
     severity: Severity = "low"
+    matching: Optional[dict[str, Any]] = None
     audit_log: list[AuditEntry] = Field(default_factory=list)
 
 

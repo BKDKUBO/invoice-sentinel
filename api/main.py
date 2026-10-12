@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from analyzer import AnalysisUnavailable, analyze_invoice, gemini_configured, gemini_model_name, now_manila_iso
 from models import ActionRequest, AnalyzeResponse, Case, DashboardStats, HealthResponse
 from storage import CaseStore
+from master import MasterStore, match_invoice
 
 load_dotenv()
 # Also load monorepo root .env if present
@@ -25,6 +26,7 @@ load_dotenv(_root_env)
 
 MANILA = ZoneInfo("Asia/Manila")
 store = CaseStore()
+master = MasterStore()
 
 app = FastAPI(
     title="InvoiceSentinel API",
@@ -146,7 +148,7 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
 
     existing = store.list_cases()
     try:
-        analysis, mode = analyze_invoice(content, mime, filename, existing)
+        analysis, mode = analyze_invoice(content, mime, filename, existing, (master.list_vendors(), master.list_pos()))
     except AnalysisUnavailable as exc:
         logging.getLogger("invoicesentinel").warning("Gemini analysis failed: %s", str(exc)[:300])
         raise HTTPException(503, "Analysis unavailable, please retry")
@@ -167,6 +169,7 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
         "risk_flags": analysis["risk_flags"],
         "overall_risk_score": analysis["overall_risk_score"],
         "severity": analysis["severity"],
+        "matching": analysis.get("matching"),
         "audit_log": [
             {
                 "at": ts,
@@ -222,7 +225,69 @@ def case_action(case_id: str, body: ActionRequest) -> dict[str, Any]:
 @app.post("/api/reset-demo")
 def reset_demo() -> dict[str, Any]:
     n = store.reset_from_seed()
-    return {"ok": True, "case_count": n, "message": "Restored seed cases"}
+    m = master.reset_from_seed()
+    return {"ok": True, "case_count": n, "vendor_count": m["vendors"], "po_count": m["pos"],
+            "message": "Restored seed cases, vendor master and POs"}
+
+
+@app.get("/api/cases/{case_id}/matching")
+def case_matching(case_id: str) -> dict[str, Any]:
+    """Vendor/PO evidence panel; computed live for cases ingested before the master existed (e.g. seeds)."""
+    case = store.get_case(case_id)
+    if not case:
+        raise HTTPException(404, "Case not found")
+    if case.get("matching"):
+        return {**case["matching"], "live": False}
+    panel, flags = match_invoice(case.get("extraction") or {}, master.list_vendors(), master.list_pos())
+    return {**panel, "live": True, "suggested_flags": flags}
+
+
+@app.get("/api/vendors")
+def list_vendors() -> list[dict[str, Any]]:
+    return master.list_vendors()
+
+
+@app.post("/api/vendors")
+def save_vendor(body: dict[str, Any]) -> dict[str, Any]:
+    if not str(body.get("name") or "").strip():
+        raise HTTPException(400, "Vendor name is required")
+    body.setdefault("verified_accounts", [])
+    body.setdefault("contact", {})
+    body.setdefault("status", "approved")
+    return master.upsert_vendor(body)
+
+
+@app.delete("/api/vendors/{vendor_id}")
+def delete_vendor(vendor_id: str) -> dict[str, Any]:
+    if not master.delete_vendor(vendor_id):
+        raise HTTPException(404, "Vendor not found")
+    return {"ok": True}
+
+
+@app.get("/api/pos")
+def list_pos() -> list[dict[str, Any]]:
+    return master.list_pos()
+
+
+@app.post("/api/pos")
+def save_po(body: dict[str, Any]) -> dict[str, Any]:
+    vendors = {v["id"]: v for v in master.list_vendors()}
+    if body.get("vendor_id") not in vendors:
+        raise HTTPException(400, "Unknown vendor_id")
+    body["vendor"] = vendors[body["vendor_id"]]["name"]
+    body["items"] = [
+        {"description": str(i.get("description") or ""), "qty": float(i.get("qty") or 0), "unit_price": float(i.get("unit_price") or 0)}
+        for i in body.get("items") or [] if str(i.get("description") or "").strip()
+    ]
+    body.setdefault("status", "open")
+    return master.upsert_po(body)
+
+
+@app.delete("/api/pos/{po_number}")
+def delete_po(po_number: str) -> dict[str, Any]:
+    if not master.delete_po(po_number):
+        raise HTTPException(404, "PO not found")
+    return {"ok": True}
 
 
 if __name__ == "__main__":

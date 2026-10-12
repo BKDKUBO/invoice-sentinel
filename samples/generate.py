@@ -38,7 +38,7 @@ cases={}
 it=[("Laptop docking station USB-C",4,4850.0),("27in IPS monitor",2,9450.0),("HDMI cable 2m",6,320.0)]
 s,v,t=vat_inv(it)
 cases["01-legit-vat-invoice.png"]=render("",["Northstar IT Supplies Corp.","Unit 1203 Tycoon Centre, Pearl Drive, Ortigas, Pasig City","VAT Reg. TIN: 214-563-879-00000"],
- ["SALES INVOICE No. 0002871","Date: 2026-10-05","Sold to: Ocana Trading OPC   TIN: 498-221-307-000","Terms: 30 days"],it,
+ ["SALES INVOICE No. 0002871","Date: 2026-10-05","Sold to: Ocana Trading OPC   TIN: 498-221-307-000","Terms: 30 days   PO No.: PO-2026-0145","Pay to: BPI Acct 4410-2287-63, Northstar IT Supplies Corp."],it,
  [("VATable Sales",peso(s),False),("VAT (12%)",peso(v),False),("TOTAL AMOUNT DUE",peso(t),True)],footer=foot("0001-5000"))
 # 2 small vendor receipt (VAT-inclusive, non-VAT style)
 it=[("Bihon guisado bilao (good for 15)",2,850.0),("Lumpiang shanghai 50pcs",1,600.0),("Puto 50pcs",1,350.0)]
@@ -55,26 +55,44 @@ cases["03-ghost-placeholder-tin.png"]=render("",["Prime Synergy Ventures","Metro
 it=[("Office chair ergonomic",10,3200.0),("Steel filing cabinet 4-drawer",3,6800.0)]
 s=sum(q*u for _,q,u in it)  # 52400 -> VAT should be 6288
 cases["04-vat-math-wrong.png"]=render("",["Luzon Office Furniture Inc.","45 EDSA, Brgy. Wack-Wack, Mandaluyong City","VAT Reg. TIN: 331-772-045-00000"],
- ["SALES INVOICE No. 0010442","Date: 2026-10-06","Sold to: Ocana Trading OPC"],it,
+ ["SALES INVOICE No. 0010442","Date: 2026-10-06","Sold to: Ocana Trading OPC   PO No.: PO-2026-0148","Pay to: Metrobank Acct 117-3-11700452-1, Luzon Office Furniture Inc."],it,
  [("VATable Sales",peso(s),False),("VAT (12%)",peso(7860),False),("TOTAL AMOUNT DUE",peso(s+7860),True)],footer=foot("10001-15000"))
 # 5 BEC bank change
 it=[("NCR last-mile delivery (Oct 1-15)",1,42000.0),("Warehouse handling fee",1,3000.0)]
 s,v,t=vat_inv(it)
 cases["05-bec-bank-change.png"]=render("",["Manila Bay Logistics Co.","Pier 4, North Harbor, Tondo, Manila","VAT Reg. TIN: 987-654-321-000"],
- ["INVOICE No. MBL-4488","Date: 2026-10-07","Bill to: Ocana Trading OPC"],it,
+ ["INVOICE No. MBL-4488","Date: 2026-10-07","Bill to: Ocana Trading OPC   PO No.: PO-2026-0142"],it,
  [("VATable Sales",peso(s),False),("VAT (12%)",peso(v),False),("TOTAL",peso(t),True)],
  notes=["IMPORTANT: Our BDO account is under audit. Please remit to our NEW account:","Union Bank Acct No. 1094-3321-8870, Acct Name: J. Dela Rosa. Do not call our office."],footer=foot("MBL-4001 to MBL-6000"))
 # 6 overbilled
 it=[("A4 Bond Paper 70gsm (ream)",20,2450.0),("Ballpoint pens (box of 12)",10,95.0)]
 s,v,t=vat_inv(it)
 cases["06-overbilled-bond-paper.png"]=render("",["Quickserve Office Depot","88 Rizal Ave., Sta. Cruz, Manila","VAT Reg. TIN: 268-447-119-00000"],
- ["SALES INVOICE No. 0004517","Date: 2026-10-03","Sold to: Ocana Trading OPC"],it,
+ ["SALES INVOICE No. 0004517","Date: 2026-10-03","Sold to: Ocana Trading OPC   PO No.: PO-2026-0139","Pay to: Security Bank Acct 0000-0618-8251, Quickserve Office Depot"],it,
  [("VATable Sales",peso(s),False),("VAT (12%)",peso(v),False),("TOTAL AMOUNT DUE",peso(t),True)],footer=foot("0001-5000"))
 # 7 near duplicate of Acme seed (seed total 14000 incl tax). Reconstruct: subtotal 12500 + VAT 1500
 it=[("A4 Bond Paper (ream)",25,250.0),("Ballpoint Pens (box)",20,175.0),("Staplers & clips kit",10,275.0)]
 cases["07-near-duplicate-acme.png"]=render("",["Acme Office Supplies Inc.","210 Shaw Blvd., Mandaluyong City","VAT Reg. TIN: 123-456-789-000"],
  ["INVOICE No. INV-88427","Date: 2026-09-18","Bill to: Ocana Trading OPC"],it,
  [("VATable Sales",peso(12500),False),("VAT (12%)",peso(1500),False),("TOTAL",peso(14000),True)],footer=foot("INV-85001 to INV-90000"))
+# 9 known vendor, quietly changed bank account (no urgency words: only the vendor master catches it)
+it=[("Wireless keyboard + mouse combo",3,1250.0),("24-port gigabit network switch",1,8900.0)]
+s,v,t=vat_inv(it)
+cases["09-known-vendor-new-bank.png"]=render("",["Northstar IT Supplies Corp.","Unit 1203 Tycoon Centre, Pearl Drive, Ortigas, Pasig City","VAT Reg. TIN: 214-563-879-00000"],
+ ["SALES INVOICE No. 0002904","Date: 2026-10-09","Sold to: Ocana Trading OPC   TIN: 498-221-307-000","Terms: 30 days   PO No.: PO-2026-0158","Pay to: Metrobank Acct 7721-0094-5512, Northstar IT Supplies Corp."],it,
+ [("VATable Sales",peso(s),False),("VAT (12%)",peso(v),False),("TOTAL AMOUNT DUE",peso(t),True)],footer=foot("0001-5000"))
+# 10 exceeds PO qty and unit price (PO-2026-0152: 10 chairs @3,200)
+it=[("Office chair ergonomic",14,3450.0),("Conference table 8-seater",1,18500.0)]
+s,v,t=vat_inv(it)
+cases["10-exceeds-po-qty.png"]=render("",["Luzon Office Furniture Inc.","45 EDSA, Brgy. Wack-Wack, Mandaluyong City","VAT Reg. TIN: 331-772-045-00000"],
+ ["SALES INVOICE No. 0010489","Date: 2026-10-10","Sold to: Ocana Trading OPC   PO No.: PO-2026-0152","Pay to: Metrobank Acct 117-3-11700452-1, Luzon Office Furniture Inc."],it,
+ [("VATable Sales",peso(s),False),("VAT (12%)",peso(v),False),("TOTAL AMOUNT DUE",peso(t),True)],footer=foot("10001-15000"))
+# 11 cites a PO that does not exist
+it=[("Whiteboard markers (box)",12,180.0),("Sticky notes 3x3 (pack)",30,45.0)]
+s,v,t=vat_inv(it)
+cases["11-nonexistent-po.png"]=render("",["Acme Office Supplies Inc.","210 Shaw Blvd., Mandaluyong City","VAT Reg. TIN: 123-456-789-000"],
+ ["INVOICE No. INV-88502","Date: 2026-10-10","Bill to: Ocana Trading OPC   PO No.: PO-2026-0999","Pay to: BDO Acct 0012-3456-7890, Acme Office Supplies Inc."],it,
+ [("VATable Sales",peso(s),False),("VAT (12%)",peso(v),False),("TOTAL",peso(t),True)],footer=foot("INV-85001 to INV-90000"))
 for k,im in cases.items(): im.save(os.path.join(D,k))
 # 8 blurry photo of #1-like legit receipt
 im=cases["02-legit-small-vendor-receipt.png"].rotate(4,expand=True,fillcolor=(200,190,170))
