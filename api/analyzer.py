@@ -37,6 +37,14 @@ Return ONLY valid JSON (no markdown) matching this schema:
 Context: Philippine SME accounts-payable risk triage BEFORE payment.
 Flag ghost/fictitious vendors, duplicates, amount mismatches, template-looking docs, math errors, unusual payment changes, missing fields.
 Do NOT claim BIR compliance or tax authority status. Be conservative: unexplained high totals + vague services + placeholder TIN → GHOST_VENDOR.
+Calibration rules:
+- A complete, internally consistent invoice (real-looking TIN, address, ATP/series, correct 12% VAT) should score 0-20 with no flags. Plain or computer-generated layout alone is NOT a risk; do not raise TEMPLATE_LOOKING for that alone.
+- Low image quality (blur, skew, dim photo) is not fraud. If a field is unreadable, lower confidence in the summary instead of flagging; only use MISSING_FIELDS for fields actually absent.
+- Small non-VAT vendor receipts without customer TIN/terms are normal in PH; don't flag missing customer details.
+- Unit prices far above typical PH market prices for common goods → AMOUNT_MISMATCH titled as overbilling, with the typical price range as evidence.
+- Requests to pay a new/different bank account, a personal name, or a personal e-wallet, or "don't call us" → UNUSUAL_PAYMENT_CHANGE (high or critical).
+- Same vendor + same total + same/similar date as an existing case but a different invoice number → DUPLICATE_INVOICE (near-duplicate).
+- A vendor whose TIN matches an existing case is a known vendor; do not flag its TIN pattern as GHOST_VENDOR.
 """
 
 
@@ -92,6 +100,7 @@ def analyze_with_gemini(file_bytes: bytes, mime_type: str, filename: str, existi
                 "invoice_number": ex.get("invoice_number"),
                 "total": ex.get("total"),
                 "date": ex.get("date"),
+                "vendor_tin": ex.get("vendor_tin"),
             }
         )
 
@@ -103,11 +112,23 @@ def analyze_with_gemini(file_bytes: bytes, mime_type: str, filename: str, existi
     )
 
     part = types.Part.from_bytes(data=file_bytes, mime_type=mime_type or "application/octet-stream")
-    response = client.models.generate_content(
-        model=gemini_model_name(),
-        contents=[prompt, part],
-        config=types.GenerateContentConfig(temperature=0.2, response_mime_type="application/json"),
-    )
+    import time
+
+    response = None
+    for attempt in range(4):
+        try:
+            response = client.models.generate_content(
+                model=gemini_model_name(),
+                contents=[prompt, part],
+                config=types.GenerateContentConfig(temperature=0.2, response_mime_type="application/json"),
+            )
+            break
+        except Exception as exc:  # retry transient overload / rate limits
+            msg = str(exc)
+            if attempt < 3 and any(c in msg for c in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED")):
+                time.sleep(2 * (attempt + 1))
+                continue
+            raise
     data = _parse_json_loose(response.text or "{}")
     return _normalize_analysis(data, existing_cases)
 
@@ -312,9 +333,24 @@ def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict]) -> dic
     # Math check
     lines_sum = sum(i["amount"] for i in norm_items)
     tax = float(data.get("tax") or 0)
+    subtotal = float(data.get("subtotal") or 0)
+    # Deterministic 12% VAT check (PH standard rate)
+    if subtotal > 0 and tax > 0 and abs(tax - subtotal * 0.12) > max(1.0, subtotal * 0.12 * 0.01):
+        if not any(x["code"] == "MATH_ERROR" for x in flags):
+            flags.append(
+                {
+                    "code": "MATH_ERROR",
+                    "severity": "high",
+                    "title": "VAT is not 12% of VATable sales",
+                    "explanation": f"12% of {subtotal:,.2f} is {subtotal*0.12:,.2f}, but invoice shows {tax:,.2f}.",
+                    "evidence": f"subtotal={subtotal}; tax={tax}; rate={tax/subtotal:.4f}",
+                }
+            )
     if norm_items and total > 0:
         expected = lines_sum + tax
-        if abs(expected - total) > max(1.0, total * 0.02):
+        tol = max(1.0, total * 0.02)
+        # VAT-inclusive receipts: line amounts already include VAT, so total == lines_sum is fine
+        if abs(expected - total) > tol and abs(lines_sum - total) > tol:
             if not any(x["code"] in ("AMOUNT_MISMATCH", "MATH_ERROR") for x in flags):
                 flags.append(
                     {
@@ -327,9 +363,10 @@ def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict]) -> dic
                 )
 
     score = int(data.get("overall_risk_score") or 0)
-    if flags and score < 40:
-        sev_rank = {"low": 30, "medium": 50, "high": 75, "critical": 90}
-        score = max(score, max(sev_rank.get(f["severity"], 40) for f in flags))
+    if flags:
+        # Score floor: the overall score should never read lower than the worst flag implies
+        sev_floor = {"low": 25, "medium": 45, "high": 65, "critical": 85}
+        score = max(score, max(sev_floor.get(f["severity"], 40) for f in flags))
     score = max(0, min(100, score))
 
     return {
