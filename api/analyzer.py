@@ -59,6 +59,36 @@ from compliance import BIR_SCHEMA_HINT  # noqa: E402
 RISK_SCHEMA_HINT = RISK_SCHEMA_HINT_RAW.replace("__BIR__", BIR_SCHEMA_HINT)
 
 
+from compliance import BIR_ELEMENTS as _BIR_EL  # noqa: E402
+
+_STR = {"type": "string"}
+_NUM = {"type": "number"}
+_RISK_CODES = ["GHOST_VENDOR", "DUPLICATE_INVOICE", "AMOUNT_MISMATCH", "OVERBILLING", "TEMPLATE_LOOKING",
+               "MATH_ERROR", "UNUSUAL_PAYMENT_CHANGE", "MISSING_FIELDS"]
+RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "vendor": _STR, "vendor_tin": _STR, "vendor_address": _STR, "invoice_number": _STR, "po_number": _STR,
+        "payment": {"type": "object", "properties": {"method": _STR, "bank": _STR, "account_number": _STR, "account_name": _STR}},
+        "date": _STR, "currency": _STR, "subtotal": _NUM, "tax": _NUM, "total": _NUM,
+        "line_items": {"type": "array", "items": {"type": "object", "properties": {
+            "description": _STR, "qty": _NUM, "unit_price": _NUM, "amount": _NUM}, "required": ["description", "qty", "unit_price", "amount"]}},
+        "summary": _STR,
+        "document_type": {"type": "string", "enum": ["invoice", "official_receipt", "billing_statement", "other"]},
+        "seller_vat_registered": {"type": ["boolean", "null"]},
+        "bir_elements": {"type": "object", "properties": {k: {"type": "string", "enum": ["present", "missing", "unreadable"]} for k, _, _ in _BIR_EL},
+                         "required": [k for k, _, _ in _BIR_EL]},
+        "risk_flags": {"type": "array", "items": {"type": "object", "properties": {
+            "code": {"type": "string", "enum": _RISK_CODES},
+            "severity": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
+            "title": _STR, "explanation": _STR, "evidence": _STR}, "required": ["code", "severity", "title", "explanation", "evidence"]}},
+        "overall_risk_score": {"type": "integer"},
+    },
+    "required": ["vendor", "vendor_tin", "invoice_number", "po_number", "payment", "date", "subtotal", "tax", "total",
+                 "line_items", "summary", "document_type", "bir_elements", "risk_flags", "overall_risk_score"],
+}
+
+
 class AnalysisUnavailable(RuntimeError):
     """Gemini is configured but analysis failed after retries."""
 
@@ -106,7 +136,7 @@ def analyze_with_gemini(file_bytes: bytes, mime_type: str, filename: str, existi
     from google import genai
     from google.genai import types
 
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"], http_options=types.HttpOptions(timeout=60_000))
 
     known = []
     for c in existing_cases[:40]:
@@ -138,12 +168,12 @@ def analyze_with_gemini(file_bytes: bytes, mime_type: str, filename: str, existi
             response = client.models.generate_content(
                 model=gemini_model_name(),
                 contents=[prompt, part],
-                config=types.GenerateContentConfig(temperature=0.2, response_mime_type="application/json"),
+                config=types.GenerateContentConfig(temperature=0.0, seed=7, response_mime_type="application/json", response_json_schema=RESPONSE_SCHEMA),
             )
             break
         except Exception as exc:  # retry transient overload / rate limits
             msg = str(exc)
-            if attempt < 3 and any(c in msg for c in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED")):
+            if attempt < 3 and any(c in msg for c in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "timed out", "Timeout", "ReadTimeout")):
                 time.sleep(2 * (attempt + 1))
                 continue
             raise
@@ -459,17 +489,19 @@ def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict], master
         flags = [x for x in flags if not (x["code"] == "DUPLICATE_INVOICE" and not x["explanation"].startswith("Matches existing case"))]
         flags.append(sf)
 
-    score = int(data.get("overall_risk_score") or 0)
-    if flags:
-        # Score floor: the overall score should never read lower than the worst flag implies
-        sev_floor = {"low": 25, "medium": 45, "high": 65, "critical": 85}
-        score = max(score, max(sev_floor.get(f["severity"], 40) for f in flags))
-    score = max(0, min(100, score))
+    from scoring import compute_score, normalize_flags
+
+    flags = normalize_flags(flags, extraction, float(settings.get("approval_limit") or 50000))
+    # Deterministic score from flags (severity weights + small bonus for extra flags). Gemini's own
+    # overall_risk_score is kept for reference only. Floors still hold: high ≥ 70 ≥ 65, critical ≥ 90 ≥ 85.
+    score = compute_score(flags)
+    gemini_score = int(data.get("overall_risk_score") or 0)
 
     return {
         "extraction": extraction,
         "matching": matching,
         "bir": bir,
+        "gemini_score": gemini_score,
         "risk_flags": flags,
         "overall_risk_score": score,
         "severity": score_to_severity(score),

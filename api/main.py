@@ -176,6 +176,7 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
         "severity": analysis["severity"],
         "matching": analysis.get("matching"),
         "bir": analysis.get("bir"),
+        "gemini_score": analysis.get("gemini_score"),
         "audit_log": [
             {
                 "at": ts,

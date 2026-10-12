@@ -80,7 +80,7 @@ def _gemini(contents: list, temperature: float = 0.3) -> dict[str, Any]:
     from google import genai
     from google.genai import types
 
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"], http_options=types.HttpOptions(timeout=60_000))
     last: Exception | None = None
     for attempt in range(4):
         try:
@@ -91,7 +91,7 @@ def _gemini(contents: list, temperature: float = 0.3) -> dict[str, Any]:
         except Exception as exc:  # noqa: BLE001
             last = exc
             msg = str(exc)
-            if attempt < 3 and any(c in msg for c in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED")):
+            if attempt < 3 and any(c in msg for c in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "timed out", "Timeout", "ReadTimeout")):
                 time.sleep(2 * (attempt + 1))
                 continue
             break

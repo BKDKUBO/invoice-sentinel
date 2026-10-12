@@ -90,6 +90,7 @@ class Case(BaseModel):
     severity: Severity = "low"
     matching: Optional[dict[str, Any]] = None
     bir: Optional[dict[str, Any]] = None
+    gemini_score: Optional[int] = None
     audit_log: list[AuditEntry] = Field(default_factory=list)
 
 

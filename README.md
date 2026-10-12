@@ -214,6 +214,14 @@ Sources: RR No. 7-2024 (EOPT invoicing rules, full text: https://mlaguirreco.com
 
 **Split invoices (`SPLIT_INVOICE`, high).** Settings on the **Vendors & POs** page (`GET/POST /api/settings`): approval limit (default ₱50,000), window (default 7 days), "just under limit" band (default 10%). Flags when the same vendor (name or TIN) has 2+ invoices within the window, each below the limit, whose combined total exceeds it — or all sit just under the limit. Evidence lists every related invoice/case. Samples: `12-split-invoice-a.png` + `13-split-invoice-b.png` (two ₱48,000 catering invoices, 2 days apart), `14-malformed-tin-no-bir.png`.
 
+## Score stability
+
+Same invoice → same verdict. `api/scoring.py`:
+- Gemini runs at **temperature 0, fixed seed**, with a **JSON response schema** (enum-constrained flag codes, severities, document type and BIR element statuses), and a 60 s per-call timeout with retries.
+- **Severities are normalised by rule**, not taken from Gemini: MATH_ERROR by VAT discrepancy (≥2% of total → high, ≥0.2% → medium, else low); DUPLICATE_INVOICE exact (same #/vendor/total) → critical, near-duplicate → high; GHOST_VENDOR corroborated by an invalid TIN or unknown vendor → critical if ≥ approval limit else high, uncorroborated → medium; UNUSUAL_PAYMENT_CHANGE vs. vendor master → critical, Gemini-only (e-wallet/personal name) → high; OVERBILLING/AMOUNT_MISMATCH → high; TEMPLATE_LOOKING/MISSING_FIELDS capped at medium and dropped when the deterministic BIR checklist already flags the document.
+- **Score is computed from flags**: worst severity weight (low 20, medium 45, high 70, critical 90) + 5 per extra medium-or-worse flag (max +10), capped at 100; no flags → 0. Gemini's own score is kept as `gemini_score` for reference.
+- Measure with `python samples/stability.py 3` (resets between passes; 08 runs alone).
+
 ## API surface
 
 | Method | Path | Purpose |
