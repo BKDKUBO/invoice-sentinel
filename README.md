@@ -182,3 +182,21 @@ Risk flag codes: `GHOST_VENDOR`, `DUPLICATE_INVOICE`, `AMOUNT_MISMATCH`, `TEMPLA
 ## License
 
 Demo / hackathon MVP — not for production use without security review.
+
+## Deploy (Google Cloud Run)
+
+**Live demo**
+- Web: https://invoicesentinel-web-1034883854575.asia-southeast1.run.app
+- API: https://invoicesentinel-api-1034883854575.asia-southeast1.run.app (`/health`)
+
+Project `gen-lang-client-0252871691`, region `asia-southeast1`. Redeploy with:
+
+```bash
+./deploy.sh   # PROJECT / REGION env vars override defaults
+```
+
+- **API** (`invoicesentinel-api`): built from `api/Dockerfile.standalone` via `gcloud run deploy --source`; 1 vCPU / 512Mi, 0–2 instances, 120 s timeout, public. `GEMINI_API_KEY` comes from Secret Manager (`gemini-api-key`), mounted as an env var.
+- **Web** (`invoicesentinel-web`): built with Cloud Build (`deploy/cloudbuild-web.yaml`) because `NEXT_PUBLIC_API_URL` is inlined at build time. If the API URL changes, rebuild the web.
+- **CORS**: the API's `CORS_ORIGINS` is set to the web service URLs.
+- **Data is ephemeral**: cases are local JSON inside the container. Each new instance starts from the 5 seed cases baked into the image; uploads and actions are lost when an instance scales to zero or restarts. Use `POST /api/reset-demo` (or the Reset button) before a demo. With up to 2 instances, two instances can briefly show different case lists.
+- **Cost guard**: a USD 8 (~PHP 500) budget alert is set on the billing account (50/90/100% thresholds).
