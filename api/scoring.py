@@ -19,7 +19,8 @@ def _cap(sev: str, top: str) -> str:
     return sev if SEV_RANK.get(sev, 1) <= SEV_RANK[top] else top
 
 
-def normalize_flags(flags: list[dict[str, Any]], ex: dict[str, Any], approval_limit: float = 50000.0) -> list[dict[str, Any]]:
+def normalize_flags(flags: list[dict[str, Any]], ex: dict[str, Any], approval_limit: float = 50000.0,
+                    exact_duplicate: bool = False) -> list[dict[str, Any]]:
     codes = {f["code"] for f in flags}
     total = float(ex.get("total") or 0)
     sub = float(ex.get("subtotal") or 0)
@@ -39,7 +40,8 @@ def normalize_flags(flags: list[dict[str, Any]], ex: dict[str, Any], approval_li
         elif c == "AMOUNT_MISMATCH":
             f["severity"] = "high"
         elif c == "DUPLICATE_INVOICE":
-            exact = f.get("explanation", "").startswith("Matches existing case") or "exact" in (f.get("title", "") + f.get("explanation", "")).lower()
+            # critical only when the invoice number itself repeats (checked against stored cases), else near-duplicate
+            exact = exact_duplicate
             f["severity"] = "critical" if exact else "high"
         elif c == "GHOST_VENDOR":
             corroborated = bool(codes & {"TIN_INVALID", "UNKNOWN_VENDOR"}) or "vendor master: no match" in f.get("evidence", "")

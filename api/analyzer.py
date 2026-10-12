@@ -491,7 +491,11 @@ def _normalize_analysis(data: dict[str, Any], existing_cases: list[dict], master
 
     from scoring import compute_score, normalize_flags
 
-    flags = normalize_flags(flags, extraction, float(settings.get("approval_limit") or 50000))
+    exact_dup = bool(inv) and any(
+        str((c.get("extraction") or {}).get("invoice_number") or "") == inv and _same_vendor(c.get("extraction") or {})
+        for c in existing_cases
+    )
+    flags = normalize_flags(flags, extraction, float(settings.get("approval_limit") or 50000), exact_dup)
     # Deterministic score from flags (severity weights + small bonus for extra flags). Gemini's own
     # overall_risk_score is kept for reference only. Floors still hold: high ≥ 70 ≥ 65, critical ≥ 90 ≥ 85.
     score = compute_score(flags)
