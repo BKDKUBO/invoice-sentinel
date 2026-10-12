@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CaseActions } from "@/components/CaseActions";
 import { SeverityBadge, StatusBadge, RiskScore } from "@/components/SeverityBadge";
+import { AskCase } from "@/components/AskCase";
 import { MatchingPanel } from "@/components/MatchingPanel";
 import { fetchCase, fetchMatching, formatPHP, riskLabel, type Matching } from "@/lib/api";
 import { severityBadge } from "@/lib/ui";
@@ -114,6 +115,8 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
               </table>
             </div>
           </section>
+
+          <AskCase caseId={c.id} />
 
           <MatchingPanel m={matching} />
 

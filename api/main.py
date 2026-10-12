@@ -17,7 +17,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from analyzer import AnalysisUnavailable, analyze_invoice, gemini_configured, gemini_model_name, now_manila_iso
 from models import ActionRequest, AnalyzeResponse, Case, DashboardStats, HealthResponse
 from storage import CaseStore
-from master import MasterStore, match_invoice
+from master import MasterStore, match_invoice, find_vendor
+from assistant import ChatStore, LANGUAGES, ask as ask_case, build_evidence, draft_email
+from pathlib import Path
 
 load_dotenv()
 # Also load monorepo root .env if present
@@ -27,6 +29,7 @@ load_dotenv(_root_env)
 MANILA = ZoneInfo("Asia/Manila")
 store = CaseStore()
 master = MasterStore()
+chats = ChatStore()
 
 app = FastAPI(
     title="InvoiceSentinel API",
@@ -226,6 +229,7 @@ def case_action(case_id: str, body: ActionRequest) -> dict[str, Any]:
 def reset_demo() -> dict[str, Any]:
     n = store.reset_from_seed()
     m = master.reset_from_seed()
+    chats.clear()
     return {"ok": True, "case_count": n, "vendor_count": m["vendors"], "po_count": m["pos"],
             "message": "Restored seed cases, vendor master and POs"}
 
@@ -240,6 +244,60 @@ def case_matching(case_id: str) -> dict[str, Any]:
         return {**case["matching"], "live": False}
     panel, flags = match_invoice(case.get("extraction") or {}, master.list_vendors(), master.list_pos())
     return {**panel, "live": True, "suggested_flags": flags}
+
+
+def _case_ctx(case_id: str):
+    case = store.get_case(case_id)
+    if not case:
+        raise HTTPException(404, "Case not found")
+    vendors, pos = master.list_vendors(), master.list_pos()
+    matching = case.get("matching") or match_invoice(case.get("extraction") or {}, vendors, pos)[0]
+    ev = build_evidence(case, store.list_cases(), vendors, pos, matching)
+    safe = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in case.get("filename", ""))
+    img = Path(store.upload_dir) / f"{case_id}_{safe}"
+    vendor, _ = find_vendor(vendors, (case.get("extraction") or {}).get("vendor", ""), (case.get("extraction") or {}).get("vendor_tin", ""))
+    return case, ev, (img if img.exists() else None), vendor
+
+
+@app.get("/api/languages")
+def languages() -> list[str]:
+    return LANGUAGES
+
+
+@app.get("/api/cases/{case_id}/chat")
+def get_chat(case_id: str) -> list[dict[str, Any]]:
+    return chats.get(case_id)
+
+
+@app.post("/api/cases/{case_id}/ask")
+def ask_endpoint(case_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    q = str(body.get("question") or "").strip()
+    if not q:
+        raise HTTPException(400, "Question is required")
+    if not gemini_configured():
+        raise HTTPException(503, "Ask the case needs Gemini (no API key configured)")
+    case, ev, img, _ = _case_ctx(case_id)
+    try:
+        res = ask_case(case, ev, chats.get(case_id), q[:2000], str(body.get("language") or "auto"), img)
+    except AnalysisUnavailable as exc:
+        logging.getLogger("invoicesentinel").warning("Ask failed: %s", str(exc)[:300])
+        raise HTTPException(503, "Assistant unavailable, please retry")
+    ts = now_manila_iso()
+    msgs = chats.append(case_id, {"role": "user", "content": q, "at": ts},
+                        {"role": "assistant", "content": res["answer"], "at": now_manila_iso(), **{k: v for k, v in res.items() if k != "answer"}})
+    return {"reply": msgs[-1], "history": msgs}
+
+
+@app.post("/api/cases/{case_id}/draft-email")
+def draft_email_endpoint(case_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    if not gemini_configured():
+        raise HTTPException(503, "Email drafting needs Gemini (no API key configured)")
+    case, ev, _, vendor = _case_ctx(case_id)
+    try:
+        return draft_email(case, ev, str(body.get("language") or "English"), vendor)
+    except AnalysisUnavailable as exc:
+        logging.getLogger("invoicesentinel").warning("Draft failed: %s", str(exc)[:300])
+        raise HTTPException(503, "Assistant unavailable, please retry")
 
 
 @app.get("/api/vendors")

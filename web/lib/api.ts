@@ -245,3 +245,47 @@ export function formatPHP(amount: number, currency = "PHP"): string {
 }
 
 export { API_URL };
+
+export interface ChatMsg {
+  role: "user" | "assistant";
+  content: string;
+  at: string;
+  recommendation?: "PAY" | "HOLD" | "VERIFY";
+  citations?: string[];
+  language?: string;
+  missing_info?: string[];
+}
+
+export interface EmailDraft {
+  kind: "vendor_verification" | "internal_escalation";
+  to: string;
+  subject: string;
+  body: string;
+  language: string;
+}
+
+const BUSY = "The AI assistant is busy right now. Nothing was lost — please try again in a few seconds.";
+
+export async function fetchChat(id: string): Promise<ChatMsg[]> {
+  return handle(await fetch(`${API_URL}/api/cases/${id}/chat`, { cache: "no-store" }));
+}
+
+export async function askCase(id: string, question: string, language: string): Promise<{ history: ChatMsg[] }> {
+  const res = await fetch(`${API_URL}/api/cases/${id}/ask`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question, language }),
+  });
+  if (res.status === 503) throw new Error(BUSY);
+  return handle(res);
+}
+
+export async function draftEmail(id: string, language: string): Promise<EmailDraft> {
+  const res = await fetch(`${API_URL}/api/cases/${id}/draft-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ language }),
+  });
+  if (res.status === 503) throw new Error(BUSY);
+  return handle(res);
+}

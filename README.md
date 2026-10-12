@@ -178,6 +178,17 @@ Manage data at **/vendors** in the web app, or via `GET/POST /api/vendors`, `DEL
 
 Test samples `samples/09-known-vendor-new-bank.png`, `10-exceeds-po-qty.png`, `11-nonexistent-po.png` exercise these checks (`python samples/run_round.py`).
 
+## Ask the case (Gemini chat) & verification email drafts
+
+Each case page has an **Ask the case** panel (`POST /api/cases/{id}/ask`, history at `GET /api/cases/{id}/chat`, stored in `DATA_DIR/chats.json`, cleared by reset-demo). Gemini gets an evidence pack: **E1** extraction, **E2** flags + evidence, **E3** score/status, **E4** vendor-master record, **E5** matched PO, **E6** this vendor's other invoices, **E7** master/PO match checks, plus **IMG** (the uploaded invoice image). It answers only from that evidence, cites IDs like `[E4]`, states what's missing, and ends with **PAY / HOLD / VERIFY**. It never suggests contacting the vendor via details printed on the invoice.
+
+- Replies in the user's language (English, Tagalog, Taglish, Cebuano, Bahasa, Thai, Vietnamese, …); a language picker overrides (`language` field; `auto` = match).
+- Suggested chips: "Is this safe to pay?", "What changed vs this vendor's past invoices?", "What should I verify first?", "Does this match the PO?".
+- **Draft verification email** (`POST /api/cases/{id}/draft-email`, `{language}`): addressed to the vendor's contact **on file** in the vendor master; if the vendor isn't in the master it drafts an **internal escalation memo** to the Finance Manager instead. Shown with a Copy button — nothing is ever sent.
+- Same retry policy as the analyzer (503/429 retried); if Gemini still fails the API returns HTTP 503 and no mock answer is saved.
+
+Screenshots: `docs/proposal/assets/ask-*.png`.
+
 ## API surface
 
 | Method | Path | Purpose |
