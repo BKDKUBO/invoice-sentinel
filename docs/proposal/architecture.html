@@ -1,0 +1,45 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;font-family:'IBM Plex Sans';background:#fff}
+#d{width:1400px;height:640px;position:relative}
+.box{position:absolute;border-radius:12px;padding:12px 16px;box-sizing:border-box;font-size:15px;color:#0f1f3a;background:#fff;border:2px solid #c9d4e5}
+.box b{display:block;font-size:17px;margin-bottom:4px}
+.box small{display:block;color:#4a5b78;font-size:13px;line-height:1.35}
+.gcp{position:absolute;left:250px;top:20px;width:1130px;height:600px;border:2px dashed #7aa2e3;border-radius:18px;background:#f5f8fd}
+.gcp .t{position:absolute;left:18px;top:10px;font-weight:600;color:#1a56b8;font-size:15px}
+.run{border-color:#1a73e8;background:#e8f0fe}
+.ai{border-color:#9b51e0;background:#f4ecfd}
+.det{border-color:#0f9d58;background:#e6f4ea}
+.sec{border-color:#f29900;background:#fef7e0}
+.store{border-color:#5f6368;background:#f1f3f4}
+.fut{border-style:dashed;color:#5f6368}
+.tag{display:inline-block;font-family:'IBM Plex Mono';font-size:11px;background:#0f1f3a;color:#fff;border-radius:4px;padding:1px 6px;margin-top:6px}
+svg{position:absolute;left:0;top:0}
+.lbl{font-family:'IBM Plex Mono';font-size:12px;fill:#33415c}
+</style></head><body><div id="d">
+<div class="gcp"><span class="t">Google Cloud · Cloud Run services in asia-southeast1 (Singapore) · Gemini via Google AI API</span></div>
+<div class="box" style="left:10px;top:250px;width:200px;height:130px"><b>AP analyst</b><small>Browser: dashboard, case inbox, upload (PDF / PNG / JPG)</small><span class="tag">Approve · Escalate · Request docs</span></div>
+<div class="box run" style="left:290px;top:230px;width:230px;height:170px"><b>Cloud Run: web</b><small>invoicesentinel-web<br>Next.js 14 App Router · TypeScript · Tailwind<br>Risk-desk UI</small><span class="tag">HTTPS</span></div>
+<div class="box run" style="left:600px;top:200px;width:270px;height:230px"><b>Cloud Run: API</b><small>invoicesentinel-api · FastAPI (Python)<br>1 vCPU / 512 Mi · 0–2 instances · 120 s timeout<br>/api/analyze · /api/cases · /api/cases/{id}/action · /api/dashboard · /api/reset-demo</small><span class="tag">retry on 429/503 · no silent fallback</span></div>
+<div class="box ai" style="left:960px;top:60px;width:390px;height:150px"><b>Gemini API: gemini-3.8-flash</b><small>Multimodal: invoice image/PDF + prompt with case history (vendor, invoice #, total, date, TIN of up to 40 prior cases) → structured JSON: fields, line items, risk_flags[], score</small><span class="tag">temperature 0.2 · response_mime_type=application/json</span></div>
+<div class="box det" style="left:960px;top:240px;width:390px;height:150px"><b>Deterministic control layer</b><small>12% VAT recomputation · lines + tax = total (VAT-inclusive aware) · exact-duplicate match vs store · severity score floor (high ≥ 65, critical ≥ 85) · OVERBILLING re-coding</small></div>
+<div class="box store" style="left:960px;top:420px;width:390px;height:120px"><b>Case store + audit trail</b><small>MVP: JSON in container (seeded, ephemeral)<br>Roadmap: Firestore (cases, audit) + Cloud Storage (invoice files)</small></div>
+<div class="box sec" style="left:290px;top:470px;width:230px;height:110px"><b>Secret Manager</b><small>gemini-api-key mounted as env var on the API service</small></div>
+<div class="box sec" style="left:600px;top:480px;width:270px;height:110px"><b>Cloud Build → Cloud Run</b><small>deploy.sh · cloudbuild-web.yaml · budget alert (US$8, 50/90/100%)</small></div>
+<div class="box store fut" style="left:290px;top:60px;width:230px;height:110px"><b>Firebase Auth (roadmap)</b><small>Analyst / approver roles</small></div>
+<svg width="1400" height="640"><defs><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#33415c"/></marker></defs>
+<g stroke="#33415c" stroke-width="2.2" fill="none" marker-end="url(#a)">
+<line x1="210" y1="315" x2="288" y2="315"/>
+<line x1="520" y1="315" x2="598" y2="315"/>
+<path d="M870 260 C 910 260, 910 135, 958 135"/>
+<line x1="870" y1="315" x2="958" y2="315"/>
+<path d="M870 370 C 910 370, 910 480, 958 480"/>
+<line x1="405" y1="470" x2="640" y2="432" stroke-dasharray="5 4"/>
+<line x1="735" y1="480" x2="735" y2="433" stroke-dasharray="5 4"/>
+<line x1="405" y1="172" x2="405" y2="228" stroke-dasharray="5 4"/>
+</g>
+<text class="lbl" x="214" y="305">upload</text>
+<text class="lbl" x="526" y="305">REST/JSON</text>
+<text class="lbl" x="922" y="196">1 extract</text>
+<text class="lbl" x="880" y="306">2 verify</text>
+<text class="lbl" x="928" y="432">3 persist</text>
+</svg></div></body></html>

@@ -32,3 +32,4 @@ data/uploads/
 credentials.json
 service-account*.json
 *.tsbuildinfo
+docs/proposal/_print.html
