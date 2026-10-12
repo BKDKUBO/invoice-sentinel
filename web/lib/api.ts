@@ -257,6 +257,14 @@ export interface ChatMsg {
   citations?: string[];
   language?: string;
   missing_info?: string[];
+  agent_steps?: AgentStep[];
+  engine?: string;
+}
+
+export interface AgentStep {
+  tool: string;
+  args: Record<string, unknown>;
+  result: string | null;
 }
 
 export interface EmailDraft {
@@ -265,6 +273,7 @@ export interface EmailDraft {
   subject: string;
   body: string;
   language: string;
+  agent_steps?: AgentStep[];
 }
 
 const BUSY = "The AI assistant is busy right now. Nothing was lost — please try again in a few seconds.";

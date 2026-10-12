@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { askCase, ChatMsg, draftEmail, EmailDraft, fetchChat } from "@/lib/api";
+import { AgentStep, askCase, ChatMsg, draftEmail, EmailDraft, fetchChat } from "@/lib/api";
 
 const LANGS = ["auto", "English", "Tagalog", "Taglish", "Cebuano", "Ilocano", "Bahasa Indonesia", "Bahasa Melayu", "Thai", "Vietnamese", "Japanese", "Korean", "Mandarin Chinese", "Hindi"];
 const CHIPS = [
@@ -33,6 +33,26 @@ function Md({ text }: { text: string }) {
         );
       })}
     </div>
+  );
+}
+
+function Steps({ steps }: { steps?: AgentStep[] }) {
+  if (!steps?.length) return null;
+  return (
+    <details className="mt-2 rounded-md border border-slate-200 bg-white text-xs">
+      <summary className="cursor-pointer select-none px-2 py-1 font-medium text-slate-600">
+        Agent steps · Google ADK · {steps.length} tool call{steps.length > 1 ? "s" : ""}
+      </summary>
+      <ol className="space-y-1 border-t border-slate-100 px-2 py-1.5">
+        {steps.map((s, i) => (
+          <li key={i}>
+            <span className="font-mono font-semibold text-navy-900">{i + 1}. {s.tool}</span>
+            <span className="font-mono text-slate-500">({Object.entries(s.args || {}).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(", ")})</span>
+            {s.result && <div className="ml-4 truncate font-mono text-[10px] text-slate-400" title={s.result}>→ {s.result}</div>}
+          </li>
+        ))}
+      </ol>
+    </details>
   );
 }
 
@@ -89,7 +109,7 @@ export function AskCase({ caseId }: { caseId: string }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-navy-900">Ask the case <span className="font-normal text-slate-500">· Gemini, grounded in this case’s evidence</span></h2>
+        <h2 className="text-sm font-semibold text-navy-900">Ask the case <span className="font-normal text-slate-500">· Google ADK agent · Gemini + InvoiceSentinel tools</span></h2>
         <label className="text-xs text-slate-600">
           Reply language{" "}
           <select className="rounded border border-slate-300 px-1.5 py-0.5 text-xs" value={lang} onChange={(e) => setLang(e.target.value)}>
@@ -119,6 +139,7 @@ export function AskCase({ caseId }: { caseId: string }) {
                 <p className="mt-1.5 text-xs text-amber-800">Missing info: {m.missing_info.join("; ")}</p>
               )}
               {m.language && <p className="mt-1 text-[10px] text-slate-400">Language: {m.language}</p>}
+              <Steps steps={m.agent_steps} />
             </div>
           )
         )}
@@ -167,6 +188,7 @@ export function AskCase({ caseId }: { caseId: string }) {
             </div>
             <p className="mt-2 font-semibold text-navy-900">Subject: {draft.subject}</p>
             <pre className="mt-1 whitespace-pre-wrap font-sans text-sm text-slate-700">{draft.body}</pre>
+            <Steps steps={draft.agent_steps} />
           </div>
         )}
       </div>

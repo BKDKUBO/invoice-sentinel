@@ -9,20 +9,19 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-from storage import _default_data_dir
+from db import collection
 
 _lock = threading.Lock()
 DEFAULT_SETTINGS = {"approval_limit": 50000.0, "split_window_days": 7, "near_limit_pct": 10.0}
 
 
 class SettingsStore:
-    def __init__(self, data_dir: Path | None = None) -> None:
-        self.path = (data_dir or _default_data_dir()) / "settings.json"
+    def __init__(self) -> None:
+        self.col = collection("settings", "id")
 
     def get(self) -> dict[str, Any]:
-        with _lock:
-            cur = json.loads(self.path.read_text("utf-8") or "{}") if self.path.exists() else {}
-        return {**DEFAULT_SETTINGS, **cur}
+        cur = self.col.get("app") or {}
+        return {k: cur.get(k, v) for k, v in DEFAULT_SETTINGS.items()}
 
     def update(self, body: dict[str, Any]) -> dict[str, Any]:
         cur = self.get()
@@ -31,13 +30,11 @@ class SettingsStore:
                 cur[k] = type(DEFAULT_SETTINGS[k])(body[k])
         if cur["approval_limit"] <= 0 or cur["split_window_days"] < 1:
             raise ValueError("approval_limit must be > 0 and split_window_days ≥ 1")
-        with _lock:
-            self.path.write_text(json.dumps(cur, indent=2), "utf-8")
+        self.col.put({"id": "app", **cur})
         return cur
 
     def reset(self) -> dict[str, Any]:
-        with _lock:
-            self.path.write_text(json.dumps(DEFAULT_SETTINGS, indent=2), "utf-8")
+        self.col.replace_all([{"id": "app", **DEFAULT_SETTINGS}])
         return dict(DEFAULT_SETTINGS)
 
 

@@ -16,34 +16,65 @@ Ghost and fictitious receipts remain a material fraud and leakage risk for Phili
 
 ## Architecture
 
+```
+ Browser (Next.js 14 on Cloud Run)
+        │  upload / case inbox / Ask the case / Vendors & POs
+        ▼
+ FastAPI on Cloud Run (asia-southeast1)
+   ├─ Analyzer: Gemini (google-genai) multimodal extraction, temperature 0 + JSON schema
+   │     └─ deterministic layer: vendor master & PO matching, TIN + BIR (RR 7-2024) checklist,
+   │        duplicate & split-invoice detection, rule-based severities + score (api/scoring.py)
+   ├─ "Ask the case" + email drafts: Google ADK LlmAgent (api/agent.py) with tools
+   │     get_case_evidence · lookup_vendor · lookup_po · validate_tin · bir_checklist ·
+   │     search_vendor_history · draft_verification_email   → answer + "Agent steps" trace
+   ├─ Firestore (Native, asia-southeast1): is_cases, is_vendors, is_pos, is_settings, is_chats
+   └─ Cloud Storage (private bucket): invoice images  uploads/<case_id>_<file>
+ Secret Manager: gemini-api-key
+```
+
 | Layer | Stack | Notes |
 |-------|--------|--------|
-| `web/` | Next.js 14 App Router, TypeScript, Tailwind | Finance risk-desk UI (navy/slate) |
-| `api/` | Python FastAPI | Intended for Cloud Run |
-| AI | Gemini via `google-genai` | `GEMINI_API_KEY` from AI Studio |
-| Persistence (MVP) | JSON under `data/` | No Firebase credentials required locally |
-| Persistence (prod map) | Firestore + Cloud Storage | Documented below |
+| `web/` | Next.js 14 App Router, TypeScript, Tailwind | Finance risk-desk UI |
+| `api/` | Python FastAPI on Cloud Run | `api/main.py` |
+| AI extraction | Gemini via `google-genai` | `api/analyzer.py` |
+| AI agent | Google Agent Development Kit (`google-adk`) | `api/agent.py`, same Gemini model, API key |
+| Persistence | Firestore (Native) | `STORAGE_BACKEND=firestore`; JSON files under `data/` when unset (local dev) — `api/db.py` |
+| Files | Cloud Storage, private, uniform access | `UPLOAD_BUCKET=…`; local `data/uploads/` when unset |
 
-```
-invoice-sentinel/
-├── api/                 # FastAPI + Gemini/mock analyzer
-├── web/                 # Next.js UI
-├── data/
-│   └── seed-cases.json  # 5 demo cases (2 clean, 3 risky)
-├── docs/
-│   └── PROPOSAL_OUTLINE.md
-├── .env.example
-└── README.md
-```
+Storage env vars: `STORAGE_BACKEND=firestore`, `FIRESTORE_PROJECT`, optional `FIRESTORE_DATABASE` (default `(default)`) and `FIRESTORE_PREFIX` (default `is_`), `UPLOAD_BUCKET`. Locally, Firestore uses Application Default Credentials (`gcloud auth application-default login`). `POST /api/reset-demo` rewrites the seed cases, vendors, POs, settings and clears chats in whichever backend is active. Expected cost at demo scale: within the Firestore free tier (50k reads / 20k writes per day) and a few MB of Storage.
 
-### Production mapping (Firebase / GCP)
+## How to use
 
-| Local MVP | Production |
-|-----------|------------|
-| `data/cases.json` | Firestore collection `cases` |
-| `data/uploads/` | Cloud Storage bucket `gs://…/invoices/` |
-| Env `GEMINI_API_KEY` | Secret Manager + Cloud Run env |
-| No auth | Firebase Auth / Identity Platform (see TODOs) |
+1. **Dashboard** — open the web app; the strip shows cases this week and ₱ at risk. *Reset seed demo* restores the 5 demo cases.
+2. **Vendors & POs** — check the approved-vendor master (TIN, verified bank/GCash, contact on file) and purchase orders; add/edit as needed. Set the approval limit / split window here.
+3. **Upload** — drop an invoice or receipt photo/PDF (try `samples/*.png`). Gemini reads it; the deterministic checks run; a case opens with a 0-100 risk score.
+4. **Case detail** — read the explainable risk cards (each with expected vs found evidence), the *Matched against vendor master / PO* table and the *BIR compliance checklist*.
+5. **Ask the case** — click a suggested question or type in any language (English, Tagalog, Taglish, Cebuano, Bahasa, Thai, Vietnamese…). The ADK agent calls its tools, answers with citations and a **PAY / HOLD / VERIFY** recommendation; open *Agent steps* to see each tool call.
+6. **Draft verification email** — pick a language; the draft goes to the vendor's contact *on file* (or becomes an internal escalation memo for unknown vendors). Copy it into your mail client — nothing is sent automatically.
+7. **Decide** — Approve, Escalate or Request docs; every action lands in the audit trail.
+
+## Evaluation
+
+Stability (`python samples/stability.py 3`; reset between passes, 08 run alone), Oct 12 2026, `gemini-3.8-flash`:
+
+| Sample | Expected verdict | Before tuning (score range) | After (3 runs) |
+|---|---|---|---|
+| 01 legit VAT invoice | clean | 0 | 0 / 0 / 0 |
+| 02 small non-VAT receipt | clean | 0 | 0 / 0 / 0 |
+| 03 ghost vendor | critical | 95–98 | 100 / 100 / 100 |
+| 04 VAT math error | high | 45–65 | 70 / 70 / 70 |
+| 05 bank-change BEC | critical | 90–95 | 90 / 90 / 90 |
+| 06 overbilled vs PO | high | 70–75 | 75 / 75 / 75 |
+| 07 near-duplicate | high | 65–75 | 70 / 70 / 70 |
+| 08 blurry legit (alone) | low | 25 | 20 / 20 / 20 |
+| 09 known vendor, new bank | critical | 85 | 90 / 90 / 90 |
+| 10 exceeds PO | high | 65 | 70 / 70 / 70 |
+| 11 PO not found | high | 65 | 70 / 70 / 70 |
+| 12 split A | clean | 0–5 | 0 / 0 / 0 |
+| 13 split B | high (SPLIT_INVOICE) | 65 | 70 / 70 / 70 |
+| 14 malformed TIN / no BIR | high | 72–80 | 80 / 80 / 80 |
+
+Flag sets were identical across all post-tuning runs. Agent checks (live): sample 05 → HOLD in English and Tagalog, cites vendor master [E4] and calls 6 tools; sample 03 → HOLD + internal escalation memo (no vendor contact); sample 01 → PAY.
 
 ## Prerequisites
 
@@ -180,7 +211,7 @@ Test samples `samples/09-known-vendor-new-bank.png`, `10-exceeds-po-qty.png`, `1
 
 ## Ask the case (Gemini chat) & verification email drafts
 
-Each case page has an **Ask the case** panel (`POST /api/cases/{id}/ask`, history at `GET /api/cases/{id}/chat`, stored in `DATA_DIR/chats.json`, cleared by reset-demo). Gemini gets an evidence pack: **E1** extraction, **E2** flags + evidence, **E3** score/status, **E4** vendor-master record, **E5** matched PO, **E6** this vendor's other invoices, **E7** master/PO match checks, plus **IMG** (the uploaded invoice image). It answers only from that evidence, cites IDs like `[E4]`, states what's missing, and ends with **PAY / HOLD / VERIFY**. It never suggests contacting the vendor via details printed on the invoice.
+Each case page has an **Ask the case** panel (`POST /api/cases/{id}/ask`, history at `GET /api/cases/{id}/chat`, stored in `DATA_DIR/chats.json`, cleared by reset-demo). Runs as a Google ADK agent (`api/agent.py`) that must fetch evidence via tools; the evidence IDs it cites: **E1** extraction, **E2** flags + evidence, **E3** score/status, **E4** vendor-master record, **E5** matched PO, **E6** this vendor's other invoices, **E7** master/PO match checks, plus **IMG** (the uploaded invoice image). It answers only from that evidence, cites IDs like `[E4]`, states what's missing, and ends with **PAY / HOLD / VERIFY**. It never suggests contacting the vendor via details printed on the invoice.
 
 - Replies in the user's language (English, Tagalog, Taglish, Cebuano, Bahasa, Thai, Vietnamese, …); a language picker overrides (`language` field; `auto` = match).
 - Suggested chips: "Is this safe to pay?", "What changed vs this vendor's past invoices?", "What should I verify first?", "Does this match the PO?".
