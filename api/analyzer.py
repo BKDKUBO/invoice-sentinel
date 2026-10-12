@@ -59,7 +59,7 @@ def gemini_configured() -> bool:
 
 
 def gemini_model_name() -> str:
-    return os.getenv("GEMINI_MODEL", "gemini-2.0-flash").strip() or "gemini-2.0-flash"
+    return os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip() or "gemini-3.8-flash"
 
 
 def _parse_json_loose(text: str) -> dict[str, Any]:
@@ -77,10 +77,10 @@ def _parse_json_loose(text: str) -> dict[str, Any]:
 
 
 def analyze_with_gemini(file_bytes: bytes, mime_type: str, filename: str, existing_cases: list[dict]) -> dict[str, Any]:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
 
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    model = genai.GenerativeModel(gemini_model_name())
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
     known = []
     for c in existing_cases[:40]:
@@ -102,10 +102,11 @@ def analyze_with_gemini(file_bytes: bytes, mime_type: str, filename: str, existi
         f"{RISK_SCHEMA_HINT}"
     )
 
-    part = {"mime_type": mime_type or "application/octet-stream", "data": file_bytes}
-    response = model.generate_content(
-        [prompt, part],
-        generation_config={"temperature": 0.2, "response_mime_type": "application/json"},
+    part = types.Part.from_bytes(data=file_bytes, mime_type=mime_type or "application/octet-stream")
+    response = client.models.generate_content(
+        model=gemini_model_name(),
+        contents=[prompt, part],
+        config=types.GenerateContentConfig(temperature=0.2, response_mime_type="application/json"),
     )
     data = _parse_json_loose(response.text or "{}")
     return _normalize_analysis(data, existing_cases)

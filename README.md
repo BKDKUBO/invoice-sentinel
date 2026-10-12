@@ -20,7 +20,7 @@ Ghost and fictitious receipts remain a material fraud and leakage risk for Phili
 |-------|--------|--------|
 | `web/` | Next.js 14 App Router, TypeScript, Tailwind | Finance risk-desk UI (navy/slate) |
 | `api/` | Python FastAPI | Intended for Cloud Run |
-| AI | Gemini via `google-generativeai` | `GEMINI_API_KEY` from AI Studio |
+| AI | Gemini via `google-genai` | `GEMINI_API_KEY` from AI Studio |
 | Persistence (MVP) | JSON under `data/` | No Firebase credentials required locally |
 | Persistence (prod map) | Firestore + Cloud Storage | Documented below |
 
@@ -72,7 +72,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 # DATA_DIR points at monorepo data/
 export DATA_DIR=../data UPLOAD_DIR=../data/uploads CORS_ORIGINS=http://localhost:3000
-# optional: export GEMINI_API_KEY=... GEMINI_MODEL=gemini-2.0-flash
+# optional: export GEMINI_API_KEY=... GEMINI_MODEL=gemini-3.8-flash
 uvicorn main:app --host 0.0.0.0 --port 8080 --reload
 ```
 
@@ -133,7 +133,7 @@ Attach a GCS volume or switch the store to Firestore before production traffic.
 
 1. Create an API key in Google AI Studio.
 2. Set `GEMINI_API_KEY` in `.env` / Cloud Run secrets.
-3. Default model: `gemini-2.0-flash` (override with `GEMINI_MODEL`).
+3. Default model: `gemini-3.8-flash` (override with `GEMINI_MODEL`).
 4. The analyzer requests structured JSON: vendor, invoice_number, date, currency, totals, line_items, `risk_flags[]`, `overall_risk_score`.
 
 Risk flag codes: `GHOST_VENDOR`, `DUPLICATE_INVOICE`, `AMOUNT_MISMATCH`, `TEMPLATE_LOOKING`, `MATH_ERROR`, `UNUSUAL_PAYMENT_CHANGE`, `MISSING_FIELDS`.
