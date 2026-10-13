@@ -1,431 +1,154 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>InvoiceSentinel: Proposal (Google Cloud AI Builder Cup 2026, BFSI)</title>
-<link rel="stylesheet" href="style.css"></head><body>
-
-<!-- 1 COVER -->
-<section class="page cover" data-title="Cover">
-<div class="inner">
-  <div class="brand nodoc"><div class="logo">IS</div><div><div style="font-weight:600;color:#fff">InvoiceSentinel</div><div class="mono" style="color:#7cc4ff;font-size:11px">AP RISK DESK · PH SMES</div></div></div>
-  <h1>InvoiceSentinel</h1>
-  <p class="tag">Gemini-powered accounts-payable risk triage for Philippine SMEs: catch ghost receipts, bank-change scams and billing errors <b>before the payment goes out</b>.</p>
-  <p style="margin-top:22px;max-width:860px;color:#cfdcf0;font-size:15px">Proposal for the <b>Google Cloud AI Builder Cup 2026</b> (powered by Hack2skill, JAPAC). Problem statement: <b>BFSI: Intelligent Risk, Fraud &amp; Financial Experiences</b>.</p>
-  <div class="meta" style="right:400px;grid-template-columns:1.3fr 1fr">
-    <div><h3>Live prototype (Cloud Run)</h3><a href="https://invoicesentinel-web-1034883854575.asia-southeast1.run.app">invoicesentinel-web-1034883854575.asia-southeast1.run.app</a>
-      <h3 style="margin-top:12px">Public repository</h3><a href="https://github.com/BKDKUBO/invoice-sentinel">github.com/BKDKUBO/invoice-sentinel</a></div>
-    <div><h3>Team</h3>Manuel III Ocaña (team lead)<br><span class="fillc">[Team name and members: TO FILL]</span>
-      <h3 style="margin-top:12px">Demo video (≤ 3 min)</h3><span class="fillc">[YouTube / Vimeo / Drive link: TO FILL]</span></div>
-  </div>
-  <div class="band">
-    <div class="k">Built for the judging rubric</div>
-    <div class="row"><span>Technical merit &amp; GenAI</span><b>40%</b></div>
-    <div class="row"><span>Problem alignment &amp; impact</span><b>25%</b></div>
-    <div class="row"><span>Innovation &amp; creativity</span><b>25%</b></div>
-    <div class="row"><span>User experience &amp; design</span><b>10%</b></div>
-    <div class="k" style="margin-top:28px">Stack</div>
-    <div style="font-size:13.5px;line-height:1.6">Gemini 3.8 Flash (multimodal, structured JSON) · Cloud Run (asia-southeast1) · Secret Manager · Cloud Build · Next.js 14 · FastAPI</div>
-    <div class="k" style="margin-top:28px">Submission date</div>
-    <div style="font-size:13.5px">Prototype deadline: Oct 18, 2026</div>
-  </div>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>InvoiceSentinel proposal</title><link rel="stylesheet" href="style.css"></head><body><section class="page cover"><div class="tri"></div>
+<svg class="rays" viewBox="0 0 40 40"><line x1="20" y1="20" x2="39.00" y2="20.00" stroke="#fcd116" stroke-width="2.4"/><line x1="20" y1="20" x2="33.44" y2="33.44" stroke="#fcd116" stroke-width="2.4"/><line x1="20" y1="20" x2="20.00" y2="39.00" stroke="#fcd116" stroke-width="2.4"/><line x1="20" y1="20" x2="6.56" y2="33.44" stroke="#fcd116" stroke-width="2.4"/><line x1="20" y1="20" x2="1.00" y2="20.00" stroke="#fcd116" stroke-width="2.4"/><line x1="20" y1="20" x2="6.56" y2="6.56" stroke="#fcd116" stroke-width="2.4"/><line x1="20" y1="20" x2="20.00" y2="1.00" stroke="#fcd116" stroke-width="2.4"/><line x1="20" y1="20" x2="33.44" y2="6.56" stroke="#fcd116" stroke-width="2.4"/><circle cx="20" cy="20" r="6" fill="#fcd116"/></svg>
+<div style="display:flex;align-items:center;gap:14px;margin-top:70px"><svg viewBox="0 0 40 40" width="64" height="64"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><div style="font-size:24px;font-weight:800;color:#fff">InvoiceSentinel</div><div style="font-size:12px;letter-spacing:.18em;color:#e6b422;font-weight:700">AP RISK DESK · PH SMES</div></div></div>
+<h1 style="margin-top:60px">Stop paying the <span class="gold">ghost</span><br>before the money moves.</h1>
+<p style="font-size:19px;max-width:760px;color:#c9d6e3;margin-top:18px">A Gemini + Google ADK risk desk that checks every supplier invoice against your vendor master, purchase orders and BIR rules, then tells the analyst <b style="color:#fff">PAY, HOLD or VERIFY</b>, with evidence.</p>
+<div style="margin-top:26px"><span class="theme">Theme · BFSI: Intelligent Risk, Fraud &amp; Financial Experiences</span></div>
+<div style="position:absolute;left:70px;right:70px;bottom:40px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px;font-size:13px;color:#c9d6e3;border-top:1px solid #2a4663;padding-top:16px">
+<div><div class="tiny" style="color:#e6b422;font-weight:700">LIVE PROTOTYPE · CLOUD RUN</div>invoicesentinel-web-1034883854575.asia-southeast1.run.app</div>
+<div><div class="tiny" style="color:#e6b422;font-weight:700">TEAM</div>[TEAM NAME]</div>
+<div><div class="tiny" style="color:#e6b422;font-weight:700">GOOGLE CLOUD AI BUILDER CUP 2026</div>Prototype submission · Oct 2026</div></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>01</b>The problem</p><h1>Fake receipts are an industry, and accounts payable is where they get paid</h1></div><div class="crit"><span>Problem &amp; impact</span></div></div>
+<div class="grid" style="grid-template-columns:600px 1fr;gap:34px">
+<div><h2>Ghost-receipt cases filed by the BIR (alleged, ₱ billions)</h2><svg viewBox="0 0 560 210" width="560" height="210" font-family="Inter"><text x="0" y="13" font-size="12" fill="#4a5b70">4 ghost corporations: alleged tax loss, 2019–21 [1][2]</text><rect x="0" y="19" width="520" height="20" rx="4" fill="#0b1c2c"/><text x="450" y="34" font-size="13" font-weight="800" fill="#fcd116">₱25.5B</text><text x="0" y="65" font-size="12" fill="#4a5b70">Ever Bilena: alleged total tax liability [5]</text><rect x="0" y="71" width="33" height="20" rx="4" fill="#e6b422"/><text x="41" y="86" font-size="13" font-weight="800" fill="#0b1c2c">₱1.6B</text><text x="0" y="117" font-size="12" fill="#4a5b70">23 buyer firms: alleged deficiencies, 2025 [3][4]</text><rect x="0" y="123" width="29" height="20" rx="4" fill="#e6b422"/><text x="37" y="138" font-size="13" font-weight="800" fill="#0b1c2c">₱1.41B</text><text x="0" y="169" font-size="12" fill="#4a5b70">World Balance: alleged basic deficiencies [6]</text><rect x="0" y="175" width="6" height="20" rx="4" fill="#e6b422"/><text x="14" y="190" font-size="13" font-weight="800" fill="#0b1c2c">₱0.1788B</text></svg>
+<div class="card cream small" style="margin-top:8px"><b>68%</b> of organizations hit at least one AP fraud attempt in 2024; only <b>31%</b> use automated fraud detection (Basware survey of 100 finance leaders [7]).</div>
+<p class="src">BIR figures are allegations in complaints and filings, not final court findings. Sources on page 13.</p></div>
+<div><div class="card" style="margin-bottom:12px"><span class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></span><h3>The documents look real</h3><p class="small mute">Ghost receipts carry a TIN, a VAT line and a clean letterhead. They come from corporations with no operations, set up only to issue receipts [3].</p></div>
+<div class="card" style="margin-bottom:12px"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-7 10 7Z"/></svg></span><h3>The buyer takes the hit</h3><p class="small mute">In the 2025 cases, purchasing companies, their officers and their CPAs faced complaints [3]. A fake expense means cash out the door, then audit exposure.</p></div>
+<div class="card"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></span><h3>Bank-change scams hit the same desk</h3><p class="small mute">A "new bank account, please don't call" note on an otherwise normal invoice can empty an SME account in one transfer. Most SMEs have no fraud team; the only control is the clerk who opens the PDF.</p></div></div></div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">02 / 13</span></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>02</b>The solution</p><h1>A pre-payment risk desk: upload, check, decide</h1></div><div class="crit"><span>GenAI</span><span>UX</span></div></div>
+<div class="flow" style="margin-bottom:18px">
+<div class="st"><span class="ic"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5M12 3v12"/></svg></span><h3><span class="num">1</span>Upload</h3><p class="small mute">Photo, scan or PDF, or one click on <b>Try a sample</b>.</p></div><div class="ar">›</div>
+<div class="st"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></span><h3><span class="num">2</span>Gemini reads</h3><p class="small mute">Fields, line items, payee and bank details in structured JSON. No OCR templates.</p></div><div class="ar">›</div>
+<div class="st"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg></span><h3><span class="num">3</span>Code checks</h3><p class="small mute">Vendor master, PO, TIN, BIR RR 7-2024, split invoices, VAT math: deterministic rules.</p></div><div class="ar">›</div>
+<div class="st"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4M8 14h.01M16 14h.01"/></svg></span><h3><span class="num">4</span>Agent explains</h3><p class="small mute">Ask the case in any language; the ADK agent cites evidence and drafts a verification email.</p></div><div class="ar">›</div>
+<div class="st"><span class="ic"><svg viewBox="0 0 24 24"><path d="m14 13-7.5 7.5a2.1 2.1 0 0 1-3-3L11 10"/><path d="m16 16 6-6M8 8l6-6M9 7l8 8M21 11l-8-8"/></svg></span><h3><span class="num">5</span>Human decides</h3><p class="small mute">Approve, Escalate or Request docs. Every step goes to the audit trail.</p></div></div>
+<div class="grid" style="grid-template-columns:1.55fr 1fr;gap:26px"><div><img class="shot" src="assets/after/dashboard.png" style="height:370px;object-fit:cover;object-position:top;width:100%"><p class="cap">Live dashboard: KPI cards, risk trend, flag breakdown and severity mix.</p></div>
+<div><h2>Design principles</h2><ul class="chk small">
+<li><b>Triage, not verdicts.</b> The score orders the queue; it never pays or blocks anything by itself.</li>
+<li><b>Evidence for every claim.</b> Risk cards and agent answers cite evidence IDs (E1–E9, IMG) that the analyst can open.</li>
+<li><b>Code for facts, AI for judgment.</b> Matching, TIN checks, BIR rules and scoring are deterministic; Gemini reads the document and explains.</li>
+<li><b>Never fake an answer.</b> If Gemini is down, the API returns a retryable error. It never invents a clean case.</li>
+<li><b>Honest scope.</b> Supports AP triage; it does not certify BIR compliance.</li></ul></div></div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">03 / 13</span></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>03</b>Theme fit</p><h1>Built for BFSI: trust, fraud and risk at the last control before cash moves</h1></div><div class="crit"><span>Problem alignment</span></div></div>
+<div class="grid g3" style="margin-bottom:20px">
+<div class="card navy"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></span><h2>Fraud</h2><p class="small">Named fraud types are first-class flags: ghost vendor, bank-change / BEC payment redirection, duplicates, overbilling, split invoices that dodge approval limits.</p></div>
+<div class="card navy"><span class="ic"><svg viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.3 19a10 10 0 1 1 17.4 0"/></svg></span><h2>Risk</h2><p class="small">A deterministic 0–100 score with severity floors ranks the inbox. Shows "₱ at risk" and high/critical open cases, so controllers can see their exposure at a glance.</p></div>
+<div class="card navy"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg></span><h2>Trust</h2><p class="small">Every flag is explained with evidence. The verification email goes only to the contact <i>on file</i>, never the one printed on the invoice. A person makes every payment decision.</p></div></div>
+<div class="grid g2"><div class="card"><h2>Financial experience for the people who pay</h2>
+<table><tr><th>User</th><th>Gets</th></tr>
+<tr><td><b>AP clerk</b></td><td>Ranked inbox, one-click samples, plain-language answers in English, Tagalog and more</td></tr>
+<tr><td><b>Controller</b></td><td>KPI dashboard, Escalate / Request docs, timestamped audit trail</td></tr>
+<tr><td><b>SME owner</b></td><td>Protection from bank-change scams for centavos per invoice, on a phone</td></tr>
+<tr><td><b>Banks / lenders</b></td><td>A pattern that carries over to SME payment portals and claims-document review</td></tr></table></div>
+<div class="card cream"><h2>Why it matters beyond one company</h2><ul class="chk small">
+<li>The theme asks for AI that detects and mitigates fraud or risk and automates complex financial processes [10]. InvoiceSentinel does both, before the payment goes out.</li>
+<li>BIR RR 7-2024 invoice checks and TIN validation make it harder for ghost receipts to enter the books, which protects tax revenue.</li>
+<li>A light browser tool rather than an ERP, so SMEs can adopt it without a fraud team.</li></ul></div></div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">04 / 13</span></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>04</b>Features · controls</p><h1>Deterministic checks catch what a tired reviewer misses</h1></div><div class="crit"><span>Technical merit</span><span>Innovation</span></div></div>
+<div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
+<div class="card"><span class="ic"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></span><h3>Vendor master &amp; PO matching</h3><p class="small mute">Vendor, TIN, bank account, PO number, line quantities and prices vs the master. A changed bank account is a <b>critical</b> flag.</p></div>
+<div class="card"><span class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M14 10h4M14 14h4"/></svg></span><h3>TIN validation</h3><p class="small mute">Format and branch-code checks; compares the vendor TIN with the master record.</p></div>
+<div class="card"><span class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></span><h3>BIR RR 7-2024 checklist</h3><p class="small mute">Required invoice elements with section references, buyer-TIN rule for VAT sales ≥ ₱1,000. Advisory only.</p></div>
+<div class="card"><span class="ic"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M8 3H3v5M12 22v-8.3a4 4 0 0 0-1.2-2.9L3 3M21 3l-7.8 7.8"/></svg></span><h3>Split-invoice detection</h3><p class="small mute">Same vendor, close dates, combined total above the approval limit (set in Settings) → <b>SPLIT_INVOICE</b>.</p></div>
+<div class="card"><span class="ic"><svg viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.3 19a10 10 0 1 1 17.4 0"/></svg></span><h3>Deterministic scoring</h3><p class="small mute">Severity weights (low 20 · medium 45 · high 70 · critical 90) +5 per extra flag. Same input, same score.</p></div>
+<div class="card"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></span><h3>Gemini extraction</h3><p class="small mute">Multimodal read with a JSON schema at temperature 0, seed 7, with retries and a 60 s timeout.</p></div></div>
+<div class="grid g3" style="gap:16px"><div><img class="shot" src="assets/after/vendor-master-mismatch.png" style="height:190px;width:100%;object-fit:cover;object-position:top"><p class="cap">Sample 09: bank account differs from the vendor master.</p></div>
+<div><img class="shot" src="assets/after/bir-checklist.png" style="height:190px;width:100%;object-fit:cover;object-position:top"><p class="cap">BIR RR 7-2024 checklist with TIN status.</p></div>
+<div><img class="shot" src="assets/split-invoice-risk-card.png" style="height:190px;width:100%;object-fit:contain;background:#fff"><p class="cap">Sample 13 flagged as a split of sample 12.</p></div></div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">05 / 13</span></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>05</b>Features · agent</p><h1>Ask the case: a Google ADK agent that shows its work as it goes</h1></div><div class="crit"><span>GenAI</span><span>UX</span></div></div>
+<div class="grid" style="grid-template-columns:330px 1fr 1fr;gap:20px">
+<div><div class="card navy small" style="margin-bottom:12px"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4M8 14h.01M16 14h.01"/></svg></span><h3>7 tools, all read-only</h3><p>get_case_evidence · lookup_vendor · lookup_po · validate_tin · bir_checklist · search_vendor_history · draft_verification_email</p></div>
+<ul class="chk small"><li><b>Streamed steps:</b> each tool call shows up live ("Checking vendor master…") over NDJSON. The first step arrives in about 5 s.</li>
+<li><b>Grounded:</b> answers cite evidence IDs and end with <b>PAY, HOLD or VERIFY</b>.</li>
+<li><b>Multilingual:</b> replies in the user's language. Tagalog and English were tested live.</li>
+<li><b>Safe email:</b> code, not the model, sets the recipient from the vendor master. Drafts are copied, never auto-sent.</li></ul></div>
+<div><img class="shot" src="assets/after/agent-streaming-progress.png" style="width:100%;height:250px;object-fit:cover;object-position:top"><p class="cap">Agent steps arriving live.</p>
+<img class="shot" src="assets/after/ask-tagalog-answer.png" style="width:100%;height:200px;object-fit:cover;object-position:top;margin-top:10px"><p class="cap">Tagalog answer: HOLD, with cited evidence.</p></div>
+<div><img class="shot" src="assets/after/email-draft-tagalog-crop.png" style="width:100%"><p class="cap">Tagalog verification email to the contact on file (sample 09).</p></div></div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">06 / 13</span></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>06</b>Architecture</p><h1>Serverless on Google Cloud, end to end</h1></div><div class="crit"><span>Technical merit</span></div></div>
+<svg viewBox="0 0 1160 420" width="1160" height="420" font-family="Inter">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="#a27a06"/></marker></defs>
+<rect x="250" y="20" width="640" height="380" rx="16" fill="#f6f8fb" stroke="#c7d2de" stroke-dasharray="6 5"/>
+<text x="270" y="46" font-size="13" font-weight="700" fill="#4a5b70">GOOGLE CLOUD · asia-southeast1 (Singapore)</text>
+<g font-size="13">
+<rect x="10" y="150" width="190" height="110" rx="12" fill="#fff" stroke="#c7d2de"/><text x="105" y="185" text-anchor="middle" font-weight="800" fill="#0b1c2c">AP analyst</text><text x="105" y="207" text-anchor="middle" fill="#4a5b70">Browser · desktop / phone</text><text x="105" y="229" text-anchor="middle" fill="#4a5b70">Upload or "Try a sample"</text>
+<rect x="290" y="70" width="250" height="110" rx="12" fill="#0b1c2c"/><text x="415" y="104" text-anchor="middle" font-weight="800" fill="#fff">Cloud Run · Web</text><text x="415" y="126" text-anchor="middle" fill="#c9d6e3">Next.js 14 · Tailwind · Inter</text><text x="415" y="148" text-anchor="middle" fill="#fcd116">Dashboard · Upload · Case · Vendors</text>
+<rect x="290" y="230" width="250" height="140" rx="12" fill="#0b1c2c" stroke="#e6b422" stroke-width="2.5"/><text x="415" y="262" text-anchor="middle" font-weight="800" fill="#fff">Cloud Run · API</text><text x="415" y="284" text-anchor="middle" fill="#c9d6e3">FastAPI · deterministic checks</text><text x="415" y="304" text-anchor="middle" fill="#c9d6e3">vendor/PO · TIN · BIR · split · scoring</text><text x="415" y="330" text-anchor="middle" fill="#fcd116" font-weight="700">Google ADK agent (7 tools)</text><text x="415" y="350" text-anchor="middle" fill="#c9d6e3">NDJSON step streaming</text>
+<rect x="610" y="60" width="250" height="70" rx="12" fill="#fff" stroke="#e6b422" stroke-width="2"/><text x="735" y="90" text-anchor="middle" font-weight="800" fill="#0b1c2c">Gemini 3.8 Flash</text><text x="735" y="111" text-anchor="middle" fill="#4a5b70">multimodal read · JSON schema · T=0</text>
+<rect x="610" y="145" width="250" height="56" rx="12" fill="#fff" stroke="#c7d2de"/><text x="735" y="170" text-anchor="middle" font-weight="800" fill="#0b1c2c">Firestore</text><text x="735" y="189" text-anchor="middle" fill="#4a5b70">cases · vendors · POs · chats · audit</text>
+<rect x="610" y="215" width="250" height="56" rx="12" fill="#fff" stroke="#c7d2de"/><text x="735" y="240" text-anchor="middle" font-weight="800" fill="#0b1c2c">Cloud Storage</text><text x="735" y="259" text-anchor="middle" fill="#4a5b70">private invoice file bucket</text>
+<rect x="610" y="285" width="250" height="56" rx="12" fill="#fff" stroke="#c7d2de"/><text x="735" y="310" text-anchor="middle" font-weight="800" fill="#0b1c2c">Secret Manager</text><text x="735" y="329" text-anchor="middle" fill="#4a5b70">Gemini API key, mounted at runtime</text>
+<rect x="610" y="352" width="250" height="38" rx="10" fill="#fff" stroke="#c7d2de"/><text x="735" y="376" text-anchor="middle" fill="#4a5b70"><tspan font-weight="800" fill="#0b1c2c">Cloud Build</tspan> · deploy.sh builds both images</text>
+<rect x="940" y="120" width="210" height="190" rx="12" fill="#fbf8ef" stroke="#f0e3b8"/><text x="1045" y="150" text-anchor="middle" font-weight="800" fill="#0b1c2c">Analyst decides</text>
+<text x="1045" y="178" text-anchor="middle" fill="#4a5b70">PAY · HOLD · VERIFY</text><text x="1045" y="202" text-anchor="middle" fill="#4a5b70">Approve / Escalate /</text><text x="1045" y="222" text-anchor="middle" fill="#4a5b70">Request docs</text><text x="1045" y="250" text-anchor="middle" fill="#4a5b70">Verification email draft</text><text x="1045" y="272" text-anchor="middle" fill="#4a5b70">(copied, never auto-sent)</text>
+</g>
+<g stroke="#a27a06" stroke-width="2" fill="none" marker-end="url(#a)">
+<path d="M200 190 L285 130"/><path d="M200 220 L285 290"/><path d="M415 180 L415 226"/>
+<path d="M540 270 L605 98"/><path d="M540 285 L605 173"/><path d="M540 300 L605 243"/><path d="M540 320 L605 313"/><path d="M860 215 L935 215"/>
+</g></svg>
+<div class="grid g3 small" style="margin-top:6px;gap:16px"><p><b>Stateless services.</b> Both containers autoscale on Cloud Run; all state lives in Firestore and Cloud Storage.</p>
+<p><b>Secrets stay secret.</b> The Gemini key is in Secret Manager, never in code or images. Uploads go to a private bucket.</p>
+<p><b>One-command deploy.</b> <code>deploy.sh</code> provisions Firestore, the bucket and IAM, then builds and deploys both services with Cloud Build.</p></div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">07 / 13</span></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>07</b>Evaluation</p><h1>14 test invoices × 3 runs: identical results every time</h1></div><div class="crit"><span>Technical merit</span></div></div>
+<div class="grid" style="grid-template-columns:580px 1fr;gap:30px"><div>
+<h2>Risk score per sample (dots = 3 runs, all equal)</h2><svg viewBox="0 0 560 250" width="560" height="250" font-family="Inter"><line x1="30" x2="555" y1="220.0" y2="220.0" stroke="#dfe5ec"/><text x="24" y="224.0" font-size="10" text-anchor="end" fill="#7b8a9c">0</text><line x1="30" x2="555" y1="120.0" y2="120.0" stroke="#dfe5ec"/><text x="24" y="124.0" font-size="10" text-anchor="end" fill="#7b8a9c">50</text><line x1="30" x2="555" y1="20.0" y2="20.0" stroke="#dfe5ec"/><text x="24" y="24.0" font-size="10" text-anchor="end" fill="#7b8a9c">100</text><rect x="40" y="217" width="26" height="3" rx="3" fill="#2e9d5b"/><circle cx="45" cy="210" r="2.6" fill="#0b1c2c"/><circle cx="53" cy="210" r="2.6" fill="#0b1c2c"/><circle cx="61" cy="210" r="2.6" fill="#0b1c2c"/><text x="53.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">01</text><rect x="78" y="217" width="26" height="3" rx="3" fill="#2e9d5b"/><circle cx="83" cy="210" r="2.6" fill="#0b1c2c"/><circle cx="91" cy="210" r="2.6" fill="#0b1c2c"/><circle cx="99" cy="210" r="2.6" fill="#0b1c2c"/><text x="91.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">02</text><rect x="116" y="20.0" width="26" height="200.0" rx="3" fill="#ce1126"/><circle cx="121" cy="13.0" r="2.6" fill="#0b1c2c"/><circle cx="129" cy="13.0" r="2.6" fill="#0b1c2c"/><circle cx="137" cy="13.0" r="2.6" fill="#0b1c2c"/><text x="129.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">03</text><rect x="154" y="80.0" width="26" height="140.0" rx="3" fill="#e8761c"/><circle cx="159" cy="73.0" r="2.6" fill="#0b1c2c"/><circle cx="167" cy="73.0" r="2.6" fill="#0b1c2c"/><circle cx="175" cy="73.0" r="2.6" fill="#0b1c2c"/><text x="167.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">04</text><rect x="192" y="40.0" width="26" height="180.0" rx="3" fill="#ce1126"/><circle cx="197" cy="33.0" r="2.6" fill="#0b1c2c"/><circle cx="205" cy="33.0" r="2.6" fill="#0b1c2c"/><circle cx="213" cy="33.0" r="2.6" fill="#0b1c2c"/><text x="205.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">05</text><rect x="230" y="70.0" width="26" height="150.0" rx="3" fill="#e8761c"/><circle cx="235" cy="63.0" r="2.6" fill="#0b1c2c"/><circle cx="243" cy="63.0" r="2.6" fill="#0b1c2c"/><circle cx="251" cy="63.0" r="2.6" fill="#0b1c2c"/><text x="243.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">06</text><rect x="268" y="80.0" width="26" height="140.0" rx="3" fill="#e8761c"/><circle cx="273" cy="73.0" r="2.6" fill="#0b1c2c"/><circle cx="281" cy="73.0" r="2.6" fill="#0b1c2c"/><circle cx="289" cy="73.0" r="2.6" fill="#0b1c2c"/><text x="281.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">07</text><rect x="306" y="180.0" width="26" height="40.0" rx="3" fill="#2e9d5b"/><circle cx="311" cy="173.0" r="2.6" fill="#0b1c2c"/><circle cx="319" cy="173.0" r="2.6" fill="#0b1c2c"/><circle cx="327" cy="173.0" r="2.6" fill="#0b1c2c"/><text x="319.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">08</text><rect x="344" y="40.0" width="26" height="180.0" rx="3" fill="#ce1126"/><circle cx="349" cy="33.0" r="2.6" fill="#0b1c2c"/><circle cx="357" cy="33.0" r="2.6" fill="#0b1c2c"/><circle cx="365" cy="33.0" r="2.6" fill="#0b1c2c"/><text x="357.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">09</text><rect x="382" y="80.0" width="26" height="140.0" rx="3" fill="#e8761c"/><circle cx="387" cy="73.0" r="2.6" fill="#0b1c2c"/><circle cx="395" cy="73.0" r="2.6" fill="#0b1c2c"/><circle cx="403" cy="73.0" r="2.6" fill="#0b1c2c"/><text x="395.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">10</text><rect x="420" y="80.0" width="26" height="140.0" rx="3" fill="#e8761c"/><circle cx="425" cy="73.0" r="2.6" fill="#0b1c2c"/><circle cx="433" cy="73.0" r="2.6" fill="#0b1c2c"/><circle cx="441" cy="73.0" r="2.6" fill="#0b1c2c"/><text x="433.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">11</text><rect x="458" y="217" width="26" height="3" rx="3" fill="#2e9d5b"/><circle cx="463" cy="210" r="2.6" fill="#0b1c2c"/><circle cx="471" cy="210" r="2.6" fill="#0b1c2c"/><circle cx="479" cy="210" r="2.6" fill="#0b1c2c"/><text x="471.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">12</text><rect x="496" y="80.0" width="26" height="140.0" rx="3" fill="#e8761c"/><circle cx="501" cy="73.0" r="2.6" fill="#0b1c2c"/><circle cx="509" cy="73.0" r="2.6" fill="#0b1c2c"/><circle cx="517" cy="73.0" r="2.6" fill="#0b1c2c"/><text x="509.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">13</text><rect x="534" y="60.0" width="26" height="160.0" rx="3" fill="#e8761c"/><circle cx="539" cy="53.0" r="2.6" fill="#0b1c2c"/><circle cx="547" cy="53.0" r="2.6" fill="#0b1c2c"/><circle cx="555" cy="53.0" r="2.6" fill="#0b1c2c"/><text x="547.0" y="236" font-size="11" font-weight="700" text-anchor="middle" fill="#16263a">14</text></svg>
+<div style="display:flex;gap:14px;font-size:11px;margin:4px 0 12px"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#ce1126;margin-right:4px"></span>critical</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e8761c;margin-right:4px"></span>high</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#2e9d5b;margin-right:4px"></span>low</span></div>
+<div class="grid g3" style="gap:10px"><div class="card"><div class="stat">0</div><p class="tiny">score spread over 3 passes, all 14 samples</p></div>
+<div class="card"><div class="stat">14<small>/14</small></div><p class="tiny">in the expected severity band</p></div>
+<div class="card"><div class="stat">~20<small>s</small></div><p class="tiny">upload to verdict, live on Cloud Run</p></div></div></div>
+<div><table><tr><th>#</th><th>Sample (fictional)</th><th>Band</th><th>Scores</th><th>Key flags</th></tr><tr><td><b>01</b></td><td>Legit VAT invoice</td><td><span class="pill p-low">low</span></td><td>0 / 0 / 0</td><td class="tiny">—</td></tr><tr><td><b>02</b></td><td>Small non-VAT receipt</td><td><span class="pill p-low">low</span></td><td>0 / 0 / 0</td><td class="tiny">—</td></tr><tr><td><b>03</b></td><td>Ghost vendor</td><td><span class="pill p-crit">critical</span></td><td>100 / 100 / 100</td><td class="tiny">GHOST_VENDOR, TIN_INVALID</td></tr><tr><td><b>04</b></td><td>VAT math wrong</td><td><span class="pill p-high">high</span></td><td>70 / 70 / 70</td><td class="tiny">MATH_ERROR</td></tr><tr><td><b>05</b></td><td>Bank-change BEC</td><td><span class="pill p-crit">critical</span></td><td>90 / 90 / 90</td><td class="tiny">UNUSUAL_PAYMENT_CHANGE</td></tr><tr><td><b>06</b></td><td>Overbilled vs PO</td><td><span class="pill p-high">high</span></td><td>75 / 75 / 75</td><td class="tiny">OVERBILLING, PO_MISMATCH</td></tr><tr><td><b>07</b></td><td>Near-duplicate</td><td><span class="pill p-high">high</span></td><td>70 / 70 / 70</td><td class="tiny">DUPLICATE_INVOICE</td></tr><tr><td><b>08</b></td><td>Blurry legit photo</td><td><span class="pill p-low">low</span></td><td>20 / 20 / 20</td><td class="tiny">VENDOR_TIN_MISMATCH (low)</td></tr><tr><td><b>09</b></td><td>Known vendor, new bank</td><td><span class="pill p-crit">critical</span></td><td>90 / 90 / 90</td><td class="tiny">UNUSUAL_PAYMENT_CHANGE</td></tr><tr><td><b>10</b></td><td>Qty exceeds PO</td><td><span class="pill p-high">high</span></td><td>70 / 70 / 70</td><td class="tiny">PO_MISMATCH</td></tr><tr><td><b>11</b></td><td>PO not found</td><td><span class="pill p-high">high</span></td><td>70 / 70 / 70</td><td class="tiny">MISSING_PO</td></tr><tr><td><b>12</b></td><td>Split invoice A</td><td><span class="pill p-low">low</span></td><td>0 / 0 / 0</td><td class="tiny">—</td></tr><tr><td><b>13</b></td><td>Split invoice B</td><td><span class="pill p-high">high</span></td><td>70 / 70 / 70</td><td class="tiny">SPLIT_INVOICE</td></tr><tr><td><b>14</b></td><td>Malformed TIN, no BIR fields</td><td><span class="pill p-high">high</span></td><td>80 / 80 / 80</td><td class="tiny">TIN_INVALID, BIR_FORMAT_ISSUE</td></tr></table>
+<p class="tiny" style="margin-top:6px">Run with <code>samples/stability.py 3</code> on gemini-3.8-flash, Oct 12, 2026, resetting between passes. Bank-change samples 05 and 09 and split samples 12 and 13 were re-checked on the live deployment on Oct 13. Sample 08 is a known limit: a blurry TIN gives a low-severity flag, not a fraud flag.</p></div></div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">08 / 13</span></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>08</b>User guide</p><h1>Try it in 60 seconds, with no files needed</h1></div><div class="crit"><span>UX</span></div></div>
+<div class="grid" style="grid-template-columns:1.5fr 1fr 230px;gap:24px">
+<div><img class="shot" src="assets/after/upload.png" style="width:100%;height:400px;object-fit:cover;object-position:top"><p class="cap">Upload page: stepper, drop zone and the <b>Try a sample</b> grid.</p></div>
+<div><div class="card navy" style="margin-bottom:12px"><div class="tiny" style="color:#e6b422;font-weight:700">LIVE URL</div><div style="font-weight:700;color:#fff;font-size:13px;word-break:break-all">https://invoicesentinel-web-1034883854575.asia-southeast1.run.app</div></div>
+<ol class="small" style="padding-left:18px"><li><b>Check an invoice → Try a sample.</b> Click <b>09 known vendor, new bank</b>. The steps animate while Gemini reads it.</li>
+<li><b>Read the case.</b> A critical risk card plus a vendor-master table showing the bank-account mismatch.</li>
+<li><b>Ask the case.</b> Type "Ligtas ba itong bayaran?" and watch the agent steps stream in.</li>
+<li><b>Draft verification email</b> in Tagalog. It goes to the contact on file. Copy it; nothing is sent.</li>
+<li><b>Splits:</b> run sample 12, then 13. The second one is flagged SPLIT_INVOICE.</li>
+<li><b>Decide:</b> Approve, Escalate or Request docs. The decision is logged in the audit trail.</li>
+<li><b>Vendors &amp; POs</b> page: edit the master data the checks use.</li></ol>
+<p class="tiny">"Reset demo" restores the seed data. All vendors, people and accounts are fictional.</p></div>
+<div><img class="shot" src="assets/after/mobile-case.png" style="width:100%"><p class="cap">Mobile layout.</p></div></div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">09 / 13</span></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>09</b>Community benefit &amp; accessibility</p><h1>Fraud protection for the businesses that have no fraud team</h1></div><div class="crit"><span>Impact</span><span>UX</span></div></div>
+<div class="grid g3" style="margin-bottom:18px">
+<div class="card"><span class="ic"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span><h2>SMEs</h2><p class="small mute">MSMEs are most businesses in the Philippines, and most have no AP controls beyond one person. A browser tool that works from a phone photo brings bank-grade checks within reach.</p></div>
+<div class="card"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><path d="M18.1 10.4A6 6 0 1 1 10.3 18M7 6h1v4"/></svg></span><h2>Tax revenue</h2><p class="small mute">Every ghost receipt that is stopped is a fake deduction and fake input VAT kept out of the books. BIR RR 7-2024 checks point clerks to the missing elements before payment.</p></div>
+<div class="card"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/></svg></span><h2>Multilingual</h2><p class="small mute">Clerks ask in Tagalog, English or mixed Taglish and get answers and supplier emails in that language, so staff and suppliers both understand them.</p></div></div>
+<div class="grid g2"><div class="card cream"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M5 8h14M12 8v6M9 22l3-8 3 8"/></svg></span><h2>Accessibility built in</h2><ul class="chk small">
+<li>WCAG AA contrast for body text; severity is shown as text labels, not only color</li>
+<li>Visible gold focus rings and full keyboard navigation; aria-current in the nav</li>
+<li>ARIA labels on inputs, live regions for agent progress, reduced-motion support</li>
+<li>Responsive layouts tested at phone width (390 px)</li></ul></div>
+<div class="card"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><h2>Responsible by design</h2><ul class="chk small">
+<li>Human in the loop: no automatic rejection or payment</li>
+<li>Small and non-VAT vendors are not penalized for normal informality; blur is not treated as fraud</li>
+<li>Emails are only drafted; the recipient comes from the master record</li>
+<li>Paid-tier Gemini API: content is not used to train Google's models [8]</li></ul></div></div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">10 / 13</span></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>10</b>Scalability, production &amp; cost</p><h1>Centavos per invoice, from a single SME to a bank portfolio</h1></div><div class="crit"><span>Scalability</span><span>Impact</span></div></div>
+<div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:22px">
+<div><div class="card navy" style="margin-bottom:12px"><div class="stat" style="color:#fcd116">~₱0.31</div><p class="small">Gemini cost per invoice (3.8 Flash, promo pricing to Dec 31, 2026; ~₱0.62 from 2027) [8]</p></div>
+<h2>Monthly model cost by volume</h2><svg viewBox="0 0 520 200" width="520" height="200" font-family="Inter"><text x="0" y="14" font-size="13" font-weight="700" fill="#0b1c2c">200 / mo</text><text x="0" y="30" font-size="11" fill="#4a5b70">Small SME</text><rect x="130" y="4" width="120" height="18" rx="4" fill="#0b1c2c"/><text x="258" y="17" font-size="12" font-weight="700" fill="#16263a">₱62</text><rect x="130" y="26" width="140" height="18" rx="4" fill="#e6b422"/><text x="278" y="39" font-size="12" font-weight="700" fill="#16263a">₱124</text><text x="0" y="78" font-size="13" font-weight="700" fill="#0b1c2c">2,000 / mo</text><text x="0" y="94" font-size="11" fill="#4a5b70">Mid-market team</text><rect x="130" y="68" width="187" height="18" rx="4" fill="#0b1c2c"/><text x="325" y="81" font-size="12" font-weight="700" fill="#16263a">₱623</text><rect x="130" y="90" width="207" height="18" rx="4" fill="#e6b422"/><text x="345" y="103" font-size="12" font-weight="700" fill="#16263a">₱1,246</text><text x="0" y="142" font-size="13" font-weight="700" fill="#0b1c2c">50,000 / mo</text><text x="0" y="158" font-size="11" fill="#4a5b70">Shared services / bank</text><rect x="130" y="132" width="281" height="18" rx="4" fill="#0b1c2c"/><text x="419" y="145" font-size="12" font-weight="700" fill="#16263a">₱16,000</text><rect x="130" y="154" width="300" height="18" rx="4" fill="#e6b422"/><text x="438" y="167" font-size="12" font-weight="700" fill="#16263a">₱31,000</text></svg>
+<div class="tiny"><span style="color:#0b1c2c">■</span> 2026 promo · <span style="color:#a27a06">■</span> from 2027. FX ₱62.77/US$. Log scale.</div></div>
+<div><h2>Infrastructure</h2><ul class="chk small"><li>Cloud Run scales to zero; at SME volumes usage fits within the free tier [9].</li>
+<li>For judging, one instance of each service stays warm (min-instances 1) so there are no cold starts: about <b>US$23 / ~₱1,450 per month</b>. Set to 0 afterwards.</li>
+<li>Firestore and Cloud Storage cost almost nothing at prototype scale.</li></ul>
+<h2 style="margin-top:14px">Scalability</h2><ul class="chk small"><li>Stateless API, horizontal autoscaling</li><li>Gemini Batch API for overnight payment runs at half the token price [8]</li><li>Tenant-scoped Firestore collections for multiple companies</li></ul></div>
+<div class="card cream"><h2>Path to production</h2><table>
+<tr><td><b>Done</b></td><td class="small">Cloud Run, Firestore, private bucket, Secret Manager, ADK agent, deterministic controls</td></tr>
+<tr><td><b>Next</b></td><td class="small">Identity Platform sign-in with analyst / approver roles; signed URLs; rate limits</td></tr>
+<tr><td><b>Then</b></td><td class="small">Per-tenant data isolation, retention policies, upload malware scanning, audit export</td></tr>
+<tr><td><b>Ops</b></td><td class="small">Budget alerts, labeled evaluation set and regression tests on every prompt or model change</td></tr></table></div></div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">11 / 13</span></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>11</b>Roadmap</p><h1>From prototype to the payment-control layer for PH SMEs</h1></div><div class="crit"><span>Innovation</span><span>Impact</span></div></div>
+<div class="grid g4" style="margin-top:20px">
+<div class="card navy"><div class="tiny" style="color:#fcd116;font-weight:800;letter-spacing:.1em">NOW · OCT 2026</div><h2 style="margin-top:4px">Live prototype</h2><ul class="chk small"><li>Vendor/PO matching, TIN, BIR RR 7-2024, split detection</li><li>ADK agent with streamed steps</li><li>Multilingual Q&amp;A and verification emails</li><li>Firestore + Cloud Storage on Cloud Run</li></ul></div><div class="card"><div class="tiny" style="color:#a27a06;font-weight:800;letter-spacing:.1em">Q1 2027</div><h2 style="margin-top:4px">Pilot-ready</h2><ul class="chk small"><li>Sign-in and approver roles</li><li>Email-inbox intake of supplier bills</li><li>CSV import of vendor master and POs</li><li>Labeled PH evaluation set, precision/recall per flag</li></ul></div><div class="card"><div class="tiny" style="color:#a27a06;font-weight:800;letter-spacing:.1em">Q2 2027</div><h2 style="margin-top:4px">Integrations</h2><ul class="chk small"><li>QuickBooks / Xero bill sync; hold payment on Escalate</li><li>Batch review of whole payment runs</li><li>Bank-account change history per vendor</li></ul></div><div class="card"><div class="tiny" style="color:#a27a06;font-weight:800;letter-spacing:.1em">LATER</div><h2 style="margin-top:4px">Ecosystem</h2><ul class="chk small"><li>Bank SME portals: pre-transfer check API</li><li>Claims-document review for insurers</li><li>Tagalog / Cebuano UI</li><li>Optional BIR ATP and series lookups as signals</li></ul></div>
 </div>
-</section>
-
-<!-- 2 EXEC SUMMARY -->
-<section class="page" data-title="Executive summary">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">01 · Executive summary</p><h1>Stop paying the ghost before the money leaves the account</h1></div>
-<div class="crit"><span class="pill">All criteria</span></div></div>
-<div class="cols c55">
-<div>
-<p><b>The problem.</b> Philippine businesses pay suppliers on documents that are easy to fake. The Bureau of Internal Revenue (BIR) has filed cases alleging billions of pesos in tax losses from "ghost" corporations that exist only to sell fictitious receipts, and from the companies that bought them. Globally, 68% of organizations surveyed by Basware saw at least one accounts-payable (AP) fraud attempt in 2024. Most Philippine SMEs have no fraud team; AP review is a clerk looking at a PDF.</p>
-<p><b>The solution.</b> InvoiceSentinel is a pre-payment risk desk. An analyst uploads an invoice image or PDF; <b>Gemini 3.8 Flash</b> reads the document directly (no OCR templates), returns structured fields and line items, and raises <b>explainable risk flags</b> with quoted evidence: ghost vendor, bank-change / business-email-compromise (BEC) payment redirection, 12% VAT math errors, overbilling, duplicates, template-looking documents, missing fields and amount mismatches. A deterministic control layer re-checks the arithmetic and enforces score floors. Each invoice becomes a case in a severity-ranked inbox where a human decides: <b>Approve, Escalate or Request docs</b>, with every step written to an audit trail.</p>
-<p><b>Status.</b> A working end-to-end prototype is live on Cloud Run in asia-southeast1, with the Gemini key in Secret Manager. In an 8-invoice test round of Philippine-style samples, every case landed in its expected severity band after calibration (legitimate invoices 0–5; ghost vendor 95–98; bank-change 95).</p>
-<div class="callout"><b>Scope, stated plainly:</b> InvoiceSentinel is AP risk triage before payment. It does not certify BIR compliance, is not a tax-authority system, and never auto-rejects. A person makes every payment decision.</div>
-</div>
-<div>
-<h2>Where each judging criterion is answered</h2>
-<table>
-<tr><th>Criterion (weight)</th><th>Evidence in this proposal</th></tr>
-<tr><td><b>Technical merit &amp; GenAI</b> (40%)</td><td>Multimodal Gemini pipeline, history-aware prompt, structured JSON, hybrid LLM + deterministic checks, retry with no silent fallback (§04–06); Cloud Run architecture (§07); measured evaluation (§08); cost and scale (§09)</td></tr>
-<tr><td><b>Problem alignment &amp; impact</b> (25%)</td><td>Cited PH ghost-receipt enforcement and global AP fraud data (§02); users and BFSI fit (§03); unit economics (§09)</td></tr>
-<tr><td><b>Innovation &amp; creativity</b> (25%)</td><td>Evidence-quoting risk cards, cross-document reasoning over case history, PH-specific signals: TIN, 12% VAT, GCash (§05, §10)</td></tr>
-<tr><td><b>User experience &amp; design</b> (10%)</td><td>Dashboard → inbox → case → decision → audit trail; real screenshots (§04, §06, §10)</td></tr>
-</table>
-<div class="cols c3" style="margin-top:14px;gap:12px">
-<div class="card stat"><div class="num b">8 / 8</div><div class="lbl">test invoices in the expected severity band</div></div>
-<div class="card stat"><div class="num b">~₱0.31</div><div class="lbl">Gemini cost per invoice (Flash, promo pricing)</div></div>
-<div class="card stat"><div class="num b">10–34 s</div><div class="lbl">upload-to-verdict latency</div></div>
-</div>
-</div>
-</div>
-</section>
-
-<!-- 3 PROBLEM -->
-<section class="page" data-title="The problem">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">02 · The problem in the Philippines</p><h1>Fake receipts are an industry, and AP is where they get paid</h1></div>
-<div class="crit"><span class="pill o">Problem &amp; impact 25%</span></div></div>
-<div class="cols c4" style="gap:14px">
-<div class="card stat"><div class="num">₱25.5B</div><div class="lbl">alleged tax loss (2019–2021) from <b>4 ghost corporations</b> selling fictitious invoices: ₱17.63B income tax + ₱7.91B VAT, incl. surcharges and interest</div><div class="src">BIR complaints filed with DOJ, Mar 2023 [1][2]</div></div>
-<div class="card stat"><div class="num">₱1.41B</div><div class="lbl">tax deficiencies alleged against the <b>buyers</b>: 23 corporations, 56 corporate officers and 17 CPAs who used ghost receipts</div><div class="src">BIR press release, Aug 7, 2025 [3][4]</div></div>
-<div class="card stat"><div class="num" style="font-size:27px">~₱1.6B · ₱178.8M</div><div class="lbl">named brand cases: <b>Ever Bilena</b> (alleged total tax liability) and <b>World Balance</b> (alleged basic tax deficiencies), both tied to ghost receipts</div><div class="src">BIR RAFT task force; DOJ filings 2024–2025 [5][6]</div></div>
-<div class="card stat"><div class="num b">68%</div><div class="lbl">of organizations encountered at least one <b>AP fraud attempt</b> in 2024; only 31% use automated fraud-detection tools</div><div class="src">Basware / sharedserviceslink survey of 100 global leaders [7]</div></div>
-</div>
-<div class="cols c2" style="margin-top:16px">
-<div>
-<h2>Why this matters for a finance team</h2>
-<ul>
-<li><b>The documents look real.</b> Ghost receipts carry a TIN, a VAT line and a clean letterhead. The BIR describes sellers as corporations with no operations, employees or assets, set up only to issue receipts [3].</li>
-<li><b>The cost lands on the buyer.</b> In the 2025 cases it was the purchasing companies, their officers and their accountants who faced complaints [3]. A fake expense is cash out the door, followed by audit exposure.</li>
-<li><b>Payment-redirection scams hit the same desk.</b> A "new bank account, please don't call" notice on an otherwise normal invoice can drain an SME account in one transfer.</li>
-<li><b>SMEs review by eye.</b> Without a fraud team, the control is whoever opens the PDF. Basware's survey points to reliance on manual processes as a key gap [7].</li>
-</ul>
-</div>
-<div>
-<h2>How we use these numbers</h2>
-<div class="callout"><b>Caveats we keep:</b> the BIR figures are <b>allegations</b> in complaints and filings, not final court findings. They measure tax revenue loss, not AP losses. The 68% figure comes from a <b>global</b> survey of 100 respondents, not a Philippine one. We use them as motivating context for stronger private-sector controls. InvoiceSentinel does not investigate or relate to these specific cases.</div>
-<p>The pattern behind them is what we design for. A plausible-looking supplier document combines weak vendor substance (placeholder or unknown TIN, vague "facilitation fee" lines) with numbers that don't hold up, and it gets paid because no one had time to check. Those signals are visible on the document itself, so a multimodal model can read for them at the point of payment.</p>
-</div>
-</div>
-</section>
-
-<!-- 4 USERS & ALIGNMENT -->
-<section class="page" data-title="Users and BFSI alignment">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">03 · Who it serves and why it is BFSI</p><h1>A financial control for teams that can't afford a fraud department</h1></div>
-<div class="crit"><span class="pill o">Problem &amp; impact 25%</span></div></div>
-<div class="cols c3" style="gap:16px">
-<div class="card"><h3>AP clerk / analyst</h3><p class="small">Processes dozens of supplier invoices a week. Needs to know <b>which ones to look at first</b> and <b>why</b>, without reading every line.</p><p class="small"><b>Gets:</b> a ranked inbox, extracted fields, and risk cards with quoted evidence.</p></div>
-<div class="card"><h3>Finance manager / controller</h3><p class="small">Approves payment runs and answers to auditors. Needs <b>defensible decisions</b> and a view of exposure.</p><p class="small"><b>Gets:</b> a "₱ at risk" dashboard, Escalate / Request-docs workflow, and a timestamped audit trail.</p></div>
-<div class="card"><h3>SME owner</h3><p class="small">Signs the transfer. Needs protection from <b>bank-change scams</b> and padded expenses, not another ERP.</p><p class="small"><b>Gets:</b> a browser tool that works on a phone photo or PDF, at a cost of centavos per invoice.</p></div>
-</div>
-<div class="cols c2" style="margin-top:18px">
-<div>
-<h2>Alignment with the BFSI problem statement</h2>
-<p>The theme asks for AI that addresses <i>"detecting and mitigating fraud or risk, automating complex processes"</i> across financial services [10]. InvoiceSentinel does both:</p>
-<ul>
-<li><b>Fraud &amp; risk detection:</b> ghost vendors, BEC payment redirection, duplicates and overbilling are named fraud typologies, each a first-class flag.</li>
-<li><b>Process automation:</b> manual keying and arithmetic checks become a ~20-second multimodal read plus deterministic verification.</li>
-<li><b>Financial controls:</b> the AP-to-payment step is the last control before cash moves. That makes it relevant to banks (payment fraud), insurers (claims documents use the same pattern) and corporate finance.</li>
-</ul>
-</div>
-<div>
-<h2>Impact we can measure</h2>
-<table>
-<tr><th>Outcome</th><th>How the prototype shows it</th></tr>
-<tr><td>Fraudulent payments stopped</td><td>Ghost-vendor and bank-change samples score 95–98, <span class="sev cr">critical</span>, at the top of the inbox</td></tr>
-<tr><td>Analyst time saved</td><td>Legitimate invoices score 0–5, <span class="sev low">low</span>, so reviewers can clear them fast</td></tr>
-<tr><td>Errors caught, not just fraud</td><td>12% VAT and total mismatches checked deterministically on every invoice</td></tr>
-<tr><td>Audit readiness</td><td>Every ingest, flag and human action is logged with actor and Manila timestamp</td></tr>
-</table>
-<div class="callout green small" style="margin-top:10px"><b>Return on a single catch:</b> the bank-change sample redirects ₱50,400. Stopping that one payment covers about <b>160,000</b> Gemini Flash analyses at ~₱0.31 each.</div>
-</div>
-</div>
-</section>
-
-<!-- 5 SOLUTION FLOW -->
-<section class="page" data-title="Solution">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">04 · The solution, end to end</p><h1>Upload → Gemini reads and reasons → human decides → audit trail</h1></div>
-<div class="crit"><span class="pill">GenAI 40%</span><span class="pill g">UX 10%</span></div></div>
-<div class="steps">
-<div class="step"><span class="n">STEP 1</span><b>Upload</b>Drag in a PDF, PNG or JPG: a scan, a supplier PDF or a phone photo.</div>
-<div class="step ai"><span class="n">STEP 2 · GEMINI</span><b>Extract + reason</b>Vendor, TIN, invoice #, date, subtotal, VAT, total and line items, plus risk flags with explanation and evidence.</div>
-<div class="step ai"><span class="n">STEP 3 · CONTROLS</span><b>Verify + score</b>12% VAT recompute, line math, exact-duplicate check, severity score floor → 0–100 score.</div>
-<div class="step h"><span class="n">STEP 4 · HUMAN</span><b>Decide</b>Severity-ranked inbox. Approve, Escalate to fraud/finance, or Request docs, with an optional note.</div>
-<div class="step h"><span class="n">STEP 5 · RECORD</span><b>Audit + monitor</b>Timestamped trail per case; dashboard shows ₱ at risk, open, approved and escalated.</div>
-</div>
-<div class="cols c64" style="gap:22px">
-<figure><img src="assets/screen-dashboard.png" alt="InvoiceSentinel dashboard"><figcaption>Live dashboard (Cloud Run, Oct 12, 2026; seed demo data). KPI strip with ₱144,500 at risk across 3 high/critical open cases, recent cases with score and severity. The header shows the analyzer mode (<code>gemini · gemini-3.8-flash</code>).</figcaption></figure>
-<div>
-<h2>Design principles</h2>
-<ul class="small">
-<li><b>Triage, not verdicts.</b> The score orders the queue; it never blocks or pays anything by itself.</li>
-<li><b>Explain every flag.</b> Each risk card shows a code, severity, a plain-English explanation and the evidence it relied on, often quoted from the document.</li>
-<li><b>Context beyond one document.</b> Gemini sees the recent case history, so it can recognize a known vendor's TIN and spot near-duplicates.</li>
-<li><b>Never fake an answer.</b> If Gemini is unavailable after retries, the API returns a retryable error and the UI offers <i>Retry</i>. It never invents a "clean" case.</li>
-<li><b>Honest positioning.</b> A disclaimer on every case page: supports AP triage; does not certify BIR compliance.</li>
-</ul>
-</div>
-</div>
-</section>
-
-<!-- 6 GENAI CORE 1 -->
-<section class="page" data-title="GenAI design">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">05 · How Gemini is used (1/2)</p><h1>One multimodal call replaces OCR, data entry and first-pass review</h1></div>
-<div class="crit"><span class="pill">GenAI 40%</span><span class="pill p">Innovation 25%</span></div></div>
-<div class="cols c2">
-<div>
-<h2>The analysis call</h2>
-<ol class="small">
-<li><b>Input:</b> the raw file bytes (image or PDF) sent as a multimodal part to <code>gemini-3.8-flash</code> through the <code>google-genai</code> SDK. No OCR engine, no per-vendor template.</li>
-<li><b>Context:</b> the prompt includes a compact list of up to 40 prior cases (vendor, invoice #, total, date, TIN), so the model can reason <i>across</i> documents, not only within one.</li>
-<li><b>Contract:</b> <code>response_mime_type="application/json"</code>, temperature 0.2, and an explicit schema: fields, line items, a 1–2 sentence summary, <code>risk_flags[]</code> (code, severity, title, explanation, evidence) and <code>overall_risk_score</code>.</li>
-<li><b>Resilience:</b> up to 4 attempts with backoff on 429 / 503 / UNAVAILABLE / RESOURCE_EXHAUSTED. After that, an explicit "analysis unavailable" error. There is no mock fallback in live mode.</li>
-<li><b>Normalization:</b> output is parsed, type-checked and passed to the deterministic control layer (next page) before it becomes a case.</li>
-</ol>
-</div>
-<div>
-<h2>Calibration rules in the prompt</h2>
-<p class="small">The first test round showed the usual LLM failure modes: false alarms on plain layouts and blurry photos, and fraud labels on the wrong code. We wrote explicit PH-specific rules into the prompt:</p>
-<ul class="small">
-<li>A complete, consistent invoice (real-looking TIN, address, ATP/series, correct 12% VAT) should score <b>0–20 with no flags</b>. A plain or computer-generated layout alone is not a risk.</li>
-<li><b>Image quality is not fraud.</b> If a field is unreadable, lower confidence in the summary; use MISSING_FIELDS only for fields that are actually absent.</li>
-<li>Small non-VAT vendor receipts without customer TIN or terms are <b>normal in the Philippines</b>.</li>
-<li>Unit prices far above typical PH market prices → <b>OVERBILLING</b>, with the typical range as evidence. AMOUNT_MISMATCH is only for totals that don't add up.</li>
-<li>New or different bank account, a personal name or e-wallet, or "don't call us" → <b>UNUSUAL_PAYMENT_CHANGE</b> (high or critical).</li>
-<li>Same vendor, same total and a similar date but a different invoice # → <b>DUPLICATE_INVOICE</b> (near-duplicate).</li>
-<li>A TIN that matches an existing case is a <b>known vendor</b>; don't flag its TIN pattern as a ghost.</li>
-</ul>
-</div>
-</div>
-<div class="callout blue small"><b>Why GenAI is essential here:</b> the strongest fraud signals are semantic. Examples are a "facilitation fee" with no deliverable, a payment notice telling staff not to call, and ₱2,450 for a ream of bond paper. Rules and OCR can't see these; a multimodal model reads them the way a senior AP reviewer would, then shows its evidence.</div>
-</section>
-
-<!-- 7 GENAI CORE 2 -->
-<section class="page" data-title="Risk taxonomy and hybrid controls">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">06 · How Gemini is used (2/2)</p><h1>Eight explainable risk signals, backed by code where math allows</h1></div>
-<div class="crit"><span class="pill">GenAI 40%</span><span class="pill p">Innovation 25%</span></div></div>
-<table>
-<tr><th style="width:190px">Flag code</th><th>What Gemini looks for on the document</th><th style="width:330px">Deterministic layer (code, after Gemini)</th></tr>
-<tr><td><code>GHOST_VENDOR</code></td><td>Placeholder or implausible TIN (e.g., 000-000-000-000), thin vendor substance, vague single-line services, unexplained high totals</td><td>Known-vendor rule: prompt receives prior TINs, so a matching TIN isn't flagged; severity floor applies</td></tr>
-<tr><td><code>UNUSUAL_PAYMENT_CHANGE</code></td><td>"New bank details", remittance to a personal name or e-wallet (e.g., GCash), "do not call us", i.e. BEC / payment-redirection language</td><td>Severity floor: high ≥ 65, critical ≥ 85 score</td></tr>
-<tr><td><code>MATH_ERROR</code></td><td>Arithmetic inconsistencies the model notices while extracting</td><td><b>VAT recomputed:</b> flags if VAT ≠ 12% × VATable sales (tolerance max(₱1, 1%))</td></tr>
-<tr><td><code>AMOUNT_MISMATCH</code></td><td>Totals that don't reconcile with line items</td><td>Lines + VAT vs total (2% tolerance); VAT-inclusive receipts accepted when lines = total</td></tr>
-<tr><td><code>OVERBILLING</code></td><td>Unit prices far above typical PH market prices; cites the expected range</td><td>Mis-coded "overpriced / above market" mismatches re-coded to OVERBILLING</td></tr>
-<tr><td><code>DUPLICATE_INVOICE</code></td><td>Near-duplicates: same vendor and total, similar date, different invoice #</td><td>Exact match on vendor + invoice # + total against the case store</td></tr>
-<tr><td><code>TEMPLATE_LOOKING</code></td><td>Generic online-template look combined with missing substance (never layout alone)</td><td>Severity floor applies</td></tr>
-<tr><td><code>MISSING_FIELDS</code></td><td>Absent address, remittance details, TIN, ATP/series. Not unreadable fields on a blurry photo</td><td>Severity floor applies</td></tr>
-</table>
-<div class="cols c3" style="margin-top:14px;gap:16px">
-<div class="card"><h3>Why hybrid</h3><p class="small">LLMs are strong readers and weak calculators. Gemini does what only it can do (read any layout, judge semantics, quote evidence); code does what must be exact (tax math, exact duplicates, score monotonicity).</p></div>
-<div class="card"><h3>Score floor by severity</h3><p class="small">The overall score can never read lower than the worst flag implies (low 25 · medium 45 · high 65 · critical 85). A critical flag can't be buried by an optimistic model score.</p></div>
-<div class="card"><h3>Severity bands</h3><p class="small"><span class="sev low">low</span> 0–39 · <span class="sev med">medium</span> 40–64 · <span class="sev high">high</span> 65–84 · <span class="sev cr">critical</span> 85–100. The bands drive inbox order and the "₱ at risk" KPI (high + critical open totals).</p></div>
-</div>
-</section>
-
-<!-- 8 EXPLAINABILITY -->
-<section class="page" data-title="Explainability in the product">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">06b · Explainability in the product</p><h1>Every score comes with its reasons; every decision leaves a trail</h1></div>
-<div class="crit"><span class="pill">GenAI 40%</span><span class="pill g">UX 10%</span></div></div>
-<div style="display:grid;grid-template-columns:452px 1fr;gap:24px">
-<figure><img src="assets/crop-bec-left.png" alt="Bank-change BEC case analyzed live by Gemini" style="height:470px;width:auto"><figcaption><b>A. Live Gemini result</b>, sample <code>05-bec-bank-change.png</code> uploaded to the deployed app on Oct 12, 2026. Gemini extracted vendor, TIN, invoice #, date, VAT and line items from the image, wrote the summary, and scored it <b>95, critical</b> with an <code>UNUSUAL_PAYMENT_CHANGE</code> card. The card quotes the instruction to remit to a personal Union Bank account and not to call the office.</figcaption></figure>
-<div>
-<figure><img src="assets/crop-ghost-cards.png" alt="Explainable risk cards for a ghost vendor" style="height:262px;width:auto"><figcaption><b>B. Explainable risk cards</b> (ghost-vendor case): each card shows a severity, a flag code, a plain-English explanation and the evidence (all-zero TIN, an opaque "facilitation fee", no remittance block).</figcaption></figure>
-<div style="display:grid;grid-template-columns:180px 1fr;gap:16px;margin-top:10px;align-items:start">
-<figure><img src="assets/crop-ghost-audit.png" alt="Human decision and audit trail"></figure>
-<div><p class="small"><b>C. Human-in-the-loop decision and audit trail.</b> After the analyst clicks <i>Escalate</i>, the buttons lock and the trail records <i>escalated by ap_analyst</i> with a Manila (+08:00) timestamp, after the system's ingest event.</p>
-<p class="tiny">B and C are a seeded demo case, captured on the live app; the demo was reset afterwards via <code>POST /api/reset-demo</code>.</p></div>
-</div>
-</div>
-</div>
-</section>
-
-<!-- 9 ARCHITECTURE -->
-<section class="page" data-title="Architecture">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">07 · Architecture on Google Cloud</p><h1>Serverless, region-local and ready to scale from zero</h1></div>
-<div class="crit"><span class="pill">Technical merit 40%</span></div></div>
-<div style="display:grid;grid-template-columns:860px 1fr;gap:22px;align-items:start">
-<figure><img src="assets/architecture.png" alt="InvoiceSentinel architecture diagram" style="border:none"><figcaption style="font-size:12.5px">Request path: (1) Gemini extracts and reasons, (2) the deterministic layer verifies and scores, (3) the case and its audit events are stored. Solid lines are live today; dashed lines are build, secret and roadmap paths.</figcaption></figure>
-<div>
-<div class="archtxt"><div><h3>Deployed today</h3><p class="small">Two Cloud Run services in <b>asia-southeast1</b>: the Next.js web, and the FastAPI API (1 vCPU / 512 Mi, 0–2 instances, 120 s timeout). The Gemini API key is stored in <b>Secret Manager</b> and mounted on the API. The web build runs on <b>Cloud Build</b>, because the API URL is inlined at build time. A billing budget alert guards cost.</p></div>
-<div><h3>Honest MVP limits</h3><p class="small">Cases live in a JSON store inside the container. They are seeded on start and ephemeral, so with two instances the case lists can briefly differ. There is no authentication yet. Both are deliberate prototype shortcuts, and both have a mapped production path.</p></div>
-<div><h3>Production path</h3><p class="small">Firestore for cases and audit events, Cloud Storage for invoice files (signed URLs), Firebase Auth / Identity Platform for analyst vs approver roles, the Gemini Batch API for bulk back-office runs (50% lower token price [8]), and Cloud Run autoscaling for peaks at month-end close.</p></div>
-</div>
-</div>
-</div>
-</section>
-
-<!-- 10 EVALUATION -->
-<section class="page" data-title="Evaluation">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">08 · Evaluation</p><h1>8-sample test round: every case in its expected band after calibration</h1></div>
-<div class="crit"><span class="pill">Technical merit 40%</span></div></div>
-<div class="cols c64" style="gap:22px">
-<div>
-<table>
-<tr><th>#</th><th>Sample (in <code>samples/</code>)</th><th>Expected</th><th>Observed score</th><th>Result</th></tr>
-<tr><td>01</td><td>Legitimate VAT invoice: complete, correct 12% VAT</td><td>no flags</td><td><span class="sev low">0–5 low</span></td><td>Pass</td></tr>
-<tr><td>02</td><td>Legitimate small-vendor receipt (non-VAT)</td><td>no flags</td><td><span class="sev low">0–5 low</span></td><td>Pass</td></tr>
-<tr><td>03</td><td>Ghost vendor: placeholder TIN, vague service, personal GCash payee</td><td>GHOST_VENDOR</td><td><span class="sev cr">95–98 critical</span></td><td>Pass</td></tr>
-<tr><td>04</td><td>VAT math wrong: ₱7,860 shown vs 12% = ₱6,288</td><td>MATH_ERROR</td><td><span class="sev med">45–65 medium/high</span></td><td>Pass</td></tr>
-<tr><td>05</td><td>Bank-change BEC: new personal account, "don't call"</td><td>UNUSUAL_PAYMENT_CHANGE</td><td><span class="sev cr">95 critical</span></td><td>Pass</td></tr>
-<tr><td>06</td><td>Overbilled bond paper: ₱2,450/ream, ~10× market</td><td>OVERBILLING</td><td><span class="sev high">65–75 high</span></td><td>Pass</td></tr>
-<tr><td>07</td><td>Near-duplicate of the seeded Acme invoice</td><td>DUPLICATE_INVOICE</td><td><span class="sev high">70–75 high</span></td><td>Pass</td></tr>
-<tr><td>08</td><td>Blurry phone photo of a legitimate receipt</td><td>no false fraud flag</td><td><span class="sev low">5 low</span></td><td>Pass*</td></tr>
-</table>
-<p class="tiny" style="margin-top:6px">Ranges are across repeated runs during the test round. Sample 05 was re-run on the live deployment on Oct 12, 2026 and again scored 95, critical. *TIN extraction on blurry photos is a known limit (see right).</p>
-</div>
-<div>
-<h2>What changed to get here</h2>
-<ul class="small">
-<li>Calibrated prompt rules for legitimate PH documents, blur and non-VAT receipts (cut false positives on 01, 02 and 08).</li>
-<li>Deterministic 12% VAT check and VAT-inclusive total handling (made 04 reliable).</li>
-<li>Dedicated OVERBILLING code instead of a generic mismatch (06).</li>
-<li>Severity score floor, so a critical flag can't sit at a low score.</li>
-<li>Retries on 429/503, and removal of the silent mock fallback in live mode.</li>
-</ul>
-<h2>Performance and honest limits</h2>
-<ul class="small">
-<li><b>Latency:</b> about 10–34 s from upload to verdict, dominated by the Gemini call. That is fine for pre-payment review, not for point-of-sale.</li>
-<li><b>Run-to-run variance:</b> scores move a few points between runs (e.g., 45–65 on the VAT case) even at temperature 0.2. Bands and flags were stable; exact scores are not. The deterministic floor limits downside drift.</li>
-<li><b>Small test set:</b> 8 synthetic PH-style samples demonstrate behavior; they are not a statistical accuracy claim. A labeled evaluation set is on the roadmap.</li>
-<li><b>Blurry photos:</b> TIN digits can be misread, so the TIN-based checks are weaker on poor images.</li>
-</ul>
-</div>
-</div>
-</section>
-
-<!-- 11 COST & SCALE -->
-<section class="page" data-title="Cost and scalability">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">09 · Cost, scalability and sustainability</p><h1>Centavos per invoice: affordable for SMEs, scalable for banks</h1></div>
-<div class="crit"><span class="pill">Technical merit 40%</span><span class="pill o">Impact 25%</span></div></div>
-<div class="cols c2" style="gap:26px">
-<div>
-<h2>Gemini cost per invoice</h2>
-<table>
-<tr><th>Model</th><th>Through Dec 31, 2026</th><th>From Jan 1, 2027</th></tr>
-<tr><td>Gemini 3.8 Flash (default)</td><td><b>~₱0.31</b></td><td>~₱0.62</td></tr>
-<tr><td>Pro-tier model (optional second opinion)</td><td>~₱1.00</td><td>n/a</td></tr>
-</table>
-<h2 style="margin-top:16px">Monthly model cost by volume (Flash)</h2>
-<table>
-<tr><th>Invoices / month</th><th>Typical user</th><th>Promo pricing</th><th>From 2027</th></tr>
-<tr><td>200</td><td>Small SME</td><td><b>~₱62</b></td><td>~₱124</td></tr>
-<tr><td>2,000</td><td>Mid-market finance team</td><td><b>~₱623</b></td><td>~₱1,246</td></tr>
-<tr><td>50,000</td><td>Shared-services center / bank SME portfolio</td><td><b>~₱16,000</b></td><td>~₱31,000</td></tr>
-</table>
-<p class="tiny" style="margin-top:6px">Based on the official Gemini API paid-tier pricing as of Oct 12, 2026 (page updated Oct 9, 2026) [8]: Gemini 3.8 Flash US$0.75 / 1M input and US$3.75 / 1M output tokens through Dec 31, 2026, doubling from Jan 1, 2027. FX ₱62.77 per US$. Per-invoice token use (one image or PDF page plus prompt and JSON output) is an estimate; real cost varies with page count and output length. Post-2027 column = 2× promo.</p>
-</div>
-<div>
-<h2>Infrastructure</h2>
-<p class="small">Cloud Run scales to zero, so an idle desk costs nothing. At prototype and SME volumes, usage stays within Cloud Run's monthly free tier [9], and a US$8 (~₱500) budget alert with 50/90/100% thresholds protects the billing account. Costs become material only at sustained scale. By then the per-invoice model cost dominates, and it is still under a peso.</p>
-<h2>Scalability</h2>
-<ul class="small">
-<li><b>Stateless API:</b> horizontal autoscaling on Cloud Run. The only state moves to Firestore and Cloud Storage on the roadmap.</li>
-<li><b>Throughput levers:</b> Gemini Batch API for overnight bulk runs at half the token price [8]; Flash by default, with a Pro-tier second opinion only on high and critical cases.</li>
-<li><b>Multi-tenant ready:</b> case history is already passed per request, so tenant-scoped history is a data-layer change, not a model change.</li>
-</ul>
-<h2>Sustainability of the product</h2>
-<p class="small">With model costs under ₱1 per invoice, a low monthly subscription for SMEs, or a per-seat price bundled by an accounting firm or bank SME program, can cover costs with margin. The same engine can serve banks and insurers as an API for supplier-payment and claims-document screening.</p>
-</div>
-</div>
-</section>
-
-<!-- 12 INNOVATION & UX -->
-<section class="page" data-title="Innovation and UX">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">10 · Innovation and user experience</p><h1>A senior AP reviewer's judgment, in an analyst's queue</h1></div>
-<div class="crit"><span class="pill p">Innovation 25%</span><span class="pill g">UX 10%</span></div></div>
-<div class="cols c55" style="gap:24px">
-<div>
-<h2>How it differs from the usual options</h2>
-<table>
-<tr><th>Approach</th><th>What it misses</th><th>InvoiceSentinel</th></tr>
-<tr><td>Manual eyeballing</td><td>Inconsistent, slow, skipped at month-end</td><td>Every invoice read, scored and ranked</td></tr>
-<tr><td>OCR + rules / AP automation</td><td>Needs templates; can't judge "vague fee" or "don't call us"</td><td>Template-free multimodal reading plus semantic judgment</td></tr>
-<tr><td>Generic AI chat with a PDF</td><td>No schema, no history, no workflow, no audit</td><td>Structured JSON, case-history context, decisions and audit trail</td></tr>
-<tr><td>Opaque fraud score</td><td>Analysts can't verify or defend it</td><td>Evidence-quoting cards plus deterministic math checks</td></tr>
-</table>
-<h2 style="margin-top:14px">What is new</h2>
-<ul class="small">
-<li><b>Cross-document reasoning:</b> the model sees recent case history, so it recognizes known vendors and near-duplicates instead of judging each PDF in isolation.</li>
-<li><b>PH-first signals:</b> TIN patterns, 12% VAT, ATP/series, non-VAT receipts, GCash and personal-account payees, and peso market prices for overbilling.</li>
-<li><b>Hybrid trust model:</b> GenAI for judgment, code for arithmetic and score floors, a human for the decision.</li>
-</ul>
-</div>
-<div>
-<h2>User experience</h2>
-<figure><img src="assets/screen-inbox.png" alt="Case inbox"><figcaption>Case inbox (live): severity-ranked queue with flag chips, totals, scores and status.</figcaption></figure>
-<ul class="small" style="margin-top:10px">
-<li><b>Three clicks to a decision:</b> inbox → case → Approve / Escalate / Request docs, with an optional note.</li>
-<li><b>Readable at a glance:</b> severity badges use text labels as well as color. Amounts are in ₱; timestamps are Manila time.</li>
-<li><b>Familiar inputs:</b> drag-and-drop or file picker for PDF, PNG and JPG up to 20 MB, including phone photos.</li>
-<li><b>Transparent system state:</b> the header shows the API status and model; failures show a clear error with <i>Retry</i>.</li>
-</ul>
-</div>
-</div>
-</section>
-
-<!-- 13 ROADMAP & RESPONSIBLE AI -->
-<section class="page" data-title="Roadmap and responsible AI">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">11 · Roadmap and responsible AI</p><h1>From prototype to the payment-control layer for PH SMEs</h1></div>
-<div class="crit"><span class="pill">Scalability 40%</span><span class="pill o">Impact 25%</span></div></div>
-<div class="cols c2" style="gap:26px">
-<div>
-<table>
-<tr><th style="width:120px">Horizon</th><th>Deliverable</th></tr>
-<tr><td><b>Next</b><br><span class="tiny">post-submission</span></td><td><b>Firestore persistence + Cloud Storage</b> for cases, files and audit events; <b>Firebase Auth</b> with analyst and approver roles</td></tr>
-<tr><td><b>Next</b></td><td><b>Vendor master and TIN enrichment</b>: known-vendor list, bank-account history per vendor, first-seen vendor alerts</td></tr>
-<tr><td><b>Next</b></td><td><b>Email "Request docs"</b>: send the supplier a templated request from the case and log the reply</td></tr>
-<tr><td><b>Later</b></td><td><b>ERP / accounting integrations</b> (e.g., QuickBooks, Xero): pull bills in, push decisions back, hold payment on Escalate</td></tr>
-<tr><td><b>Later</b></td><td><b>Batch processing</b> of whole payment runs via the Gemini Batch API</td></tr>
-<tr><td><b>Later</b></td><td><b>PH-specific BIR ATP validation</b> (Authority to Print / series checks) as an enrichment signal, not a compliance certification</td></tr>
-<tr><td><b>Later</b></td><td><b>Tagalog UI</b> and explanations, for wider SME adoption</td></tr>
-<tr><td><b>Ongoing</b></td><td>Labeled PH invoice evaluation set; precision/recall tracking per flag; prompt and model regression tests</td></tr>
-</table>
-</div>
-<div>
-<h2>Responsible AI by design</h2>
-<ul class="small">
-<li><b>Human-in-the-loop:</b> no automated rejection or payment. The model ranks; people decide, and their decisions are logged.</li>
-<li><b>Explainability:</b> every flag carries an explanation and evidence that an analyst can check against the document.</li>
-<li><b>No fabricated output:</b> if the model is unavailable, the system says so and offers a retry instead of guessing.</li>
-<li><b>Fairness to suppliers:</b> small and non-VAT vendors are explicitly not penalized for normal informality, and blur is not treated as fraud.</li>
-<li><b>Data handling:</b> on the Gemini API paid tier, content is not used to improve Google's products [8]; production runs on the paid tier and adds signed URLs, upload scanning, rate limits and retention controls.</li>
-<li><b>Clear scope:</b> not a BIR tool, not tax advice, not a compliance certificate.</li>
-</ul>
-<div class="callout small"><b>Key risks and mitigations:</b> score variance → bands, floors and human review; adversarial "clean-looking" fakes → vendor master and bank-history checks on the roadmap; model or pricing changes → model name is configurable (<code>GEMINI_MODEL</code>) and the cost is tracked per invoice.</div>
-</div>
-</div>
-</section>
-
-<!-- 14 TEAM & REFERENCES -->
-<section class="page" data-title="Team and references">
-<div class="topbar"></div>
-<div class="head"><div><p class="kicker">12 · Team, submission links and references</p><h1>Team and sources</h1></div>
-<div class="crit"><span class="pill">Submission</span></div></div>
-<div class="cols c46" style="gap:26px">
-<div>
-<h2>Team <span class="fill">[TO FILL]</span></h2>
-<table>
-<tr><th>Member</th><th>Role / focus</th></tr>
-<tr><td>Manuel III Ocaña</td><td>Team lead · <span class="fill">[role / focus: TO FILL]</span></td></tr>
-<tr><td><span class="fill">[Member 2 name: TO FILL]</span></td><td><span class="fill">[role: TO FILL]</span></td></tr>
-<tr><td><span class="fill">[Member 3 name: optional]</span></td><td><span class="fill">[role: optional]</span></td></tr>
-<tr><td><span class="fill">[Member 4 name: optional]</span></td><td><span class="fill">[role: optional]</span></td></tr>
-</table>
-<p class="tiny" style="margin-top:6px">Team name: <span class="fill">[TO FILL]</span>. Teams of 2–4 working professionals, based in JAPAC.</p>
-<h2 style="margin-top:14px">Submission links</h2>
-<table>
-<tr><td style="width:120px"><b>Live prototype</b></td><td class="small"><a href="https://invoicesentinel-web-1034883854575.asia-southeast1.run.app">invoicesentinel-web-1034883854575.asia-southeast1.run.app</a></td></tr>
-<tr><td><b>GitHub</b></td><td class="small"><a href="https://github.com/BKDKUBO/invoice-sentinel">github.com/BKDKUBO/invoice-sentinel</a></td></tr>
-<tr><td><b>Demo video</b></td><td><span class="fill">[public YouTube / Vimeo / Drive link: TO FILL]</span></td></tr>
-<tr><td><b>Theme</b></td><td class="small">BFSI: Intelligent Risk, Fraud &amp; Financial Experiences</td></tr>
-</table>
-</div>
-<div>
-<h2>References (accessed Oct 12, 2026)</h2>
-<ol class="refs">
-<li>Rappler, "P25.5 billion 'lost': BIR files tax complaints vs firms selling fake receipts," Mar 16, 2023. <a href="https://www.rappler.com/business/bureau-internal-revenue-files-tax-complaints-firms-selling-fake-receipts/">rappler.com/business/bureau-internal-revenue-files-tax-complaints-firms-selling-fake-receipts</a></li>
-<li>BusinessWorld, "BIR goes after firms issuing fake receipts," Mar 17, 2023 (₱17.63B income tax, ₱7.91B VAT, 2019–2021). <a href="https://bworldonline.com/top-stories/2023/03/17/511179/bir-goes-after-firms-issuing-fake-receipts/">bworldonline.com/top-stories/2023/03/17/511179</a></li>
-<li>Bureau of Internal Revenue, press release, Aug 7, 2025: 23 tax evasion cases against 23 corporations, 56 corporate officers, 17 CPAs; ₱1.41B tax deficiency. <a href="https://bir-cdn.bir.gov.ph/BIR/pdf/PR37AUG0725.pdf">bir-cdn.bir.gov.ph/BIR/pdf/PR37AUG0725.pdf</a></li>
-<li>Philstar, "23 firms face tax evasion cases for P1.4 billion ghost receipts," Aug 8, 2025. <a href="https://www.philstar.com/business/2025/08/08/2463870/23-firms-face-tax-evasion-cases-p14-billion-ghost-receipts">philstar.com/business/2025/08/08/2463870</a></li>
-<li>Philstar, "BIR files case vs Ever Bilena over P1.6 billion tax liability," Feb 6, 2024. <a href="https://www.philstar.com/nation/2024/02/06/2331285/bir-files-case-vs-ever-bilena-over-p16-billion-tax-liability">philstar.com/nation/2024/02/06/2331285</a></li>
-<li>Manila Bulletin, "BIR snares World Balance over fictitious receipts," Jul 21, 2025 (₱178.8M basic tax deficiencies). <a href="https://mb.com.ph/2025/07/21/bir-snares-world-balance-over-fictitious-receipts">mb.com.ph/2025/07/21/bir-snares-world-balance-over-fictitious-receipts</a></li>
-<li>Basware with sharedserviceslink, "The Rise in AP Fraud: Frequency, Sophistication, and Impact" (survey of 100 global business leaders and CFOs). <a href="https://www.basware.com/en/resources/the-rise-in-ap-fraud-frequency-sophistication-and-impact">basware.com/en/resources/the-rise-in-ap-fraud-frequency-sophistication-and-impact</a></li>
-<li>Google AI for Developers, "Gemini Developer API pricing" (last updated Oct 9, 2026). <a href="https://ai.google.dev/gemini-api/docs/pricing">ai.google.dev/gemini-api/docs/pricing</a></li>
-<li>Google Cloud, "Cloud Run pricing" (free tier). <a href="https://cloud.google.com/run/pricing">cloud.google.com/run/pricing</a></li>
-<li>Google Cloud AI Builder Cup 2026, Themes, requirements and judging criteria. <a href="https://aibuildercup.com/themes.html">aibuildercup.com/themes.html</a></li>
-</ol>
-<p class="tiny">BIR figures are allegations in complaints and filings, as publicly reported. They are not court findings.</p>
-</div>
-</div>
-</section>
-
-</body></html>
+<div class="card cream small" style="margin-top:22px"><b>Guardrails stay fixed as we grow:</b> a person decides every payment, every flag carries evidence, nothing is auto-sent, and the product never claims to certify BIR compliance.</div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">12 / 13</span></div></section><section class="page"><div class="tri"></div><div class="head"><div><p class="kicker"><b>12</b>Team &amp; references</p><h1>The team behind InvoiceSentinel</h1></div><div class="crit"><span>Submission</span></div></div>
+<div class="grid" style="grid-template-columns:1fr 1.25fr;gap:30px">
+<div><div class="ph" style="font-size:22px;margin-bottom:12px">[TEAM NAME]</div>
+<div class="grid g2" style="gap:10px"><div class="ph small">[MEMBER - ROLE]</div><div class="ph small">[MEMBER - ROLE]</div><div class="ph small">[MEMBER - ROLE]</div><div class="ph small">[MEMBER - ROLE]</div></div>
+<p class="tiny" style="margin-top:8px">Teams of 2–4 professionals based in JAPAC. Replace the placeholders before submitting.</p>
+<table style="margin-top:14px"><tr><th colspan="2">Submission links</th></tr><tr><td>Live prototype</td><td class="small">invoicesentinel-web-1034883854575.asia-southeast1.run.app</td></tr><tr><td>Demo video</td><td class="small">[VIDEO LINK]</td></tr><tr><td>Theme</td><td class="small">BFSI: Intelligent Risk, Fraud &amp; Financial Experiences</td></tr></table></div>
+<div><h2>References (accessed Oct 12, 2026)</h2><ol class="tiny" style="padding-left:16px;line-height:1.35">
+<li>Rappler, "P25.5 billion 'lost': BIR files tax complaints vs firms selling fake receipts," Mar 16, 2023.</li>
+<li>BusinessWorld, "BIR goes after firms issuing fake receipts," Mar 17, 2023 (₱17.63B income tax, ₱7.91B VAT).</li>
+<li>BIR press release, Aug 7, 2025: 23 corporations, 56 officers, 17 CPAs; ₱1.41B. bir-cdn.bir.gov.ph/BIR/pdf/PR37AUG0725.pdf</li>
+<li>Philstar, "23 firms face tax evasion cases for P1.4 billion ghost receipts," Aug 8, 2025.</li>
+<li>Philstar, "BIR files case vs Ever Bilena over P1.6 billion tax liability," Feb 6, 2024.</li>
+<li>Manila Bulletin, "BIR snares World Balance over fictitious receipts," Jul 21, 2025 (₱178.8M).</li>
+<li>Basware / sharedserviceslink, "The Rise in AP Fraud: Frequency, Sophistication, and Impact."</li>
+<li>Google AI for Developers, "Gemini Developer API pricing," updated Oct 9, 2026. ai.google.dev/gemini-api/docs/pricing</li>
+<li>Google Cloud, "Cloud Run pricing." cloud.google.com/run/pricing</li>
+<li>Google Cloud AI Builder Cup 2026, themes and judging criteria. aibuildercup.com/themes.html</li>
+<li>BIR Revenue Regulations No. 7-2024 (invoicing requirements under the EOPT Act).</li></ol></div></div><div class="foot"><span style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 40 40" width="14" height="14"><path d="M20 2 35 8v11c0 9.5-6.4 16.4-15 19-8.6-2.6-15-9.5-15-19V8L20 2Z" fill="#0b1c2c" stroke="#e6b422" stroke-width="2"/><g stroke="#fcd116" stroke-width="1.6" stroke-linecap="round"><line x1="26.50" y1="18.00" x2="29.50" y2="18.00"/><line x1="24.60" y1="22.60" x2="26.72" y2="24.72"/><line x1="20.00" y1="24.50" x2="20.00" y2="27.50"/><line x1="15.40" y1="22.60" x2="13.28" y2="24.72"/><line x1="13.50" y1="18.00" x2="10.50" y2="18.00"/><line x1="15.40" y1="13.40" x2="13.28" y2="11.28"/><line x1="20.00" y1="11.50" x2="20.00" y2="8.50"/><line x1="24.60" y1="13.40" x2="26.72" y2="11.28"/></g><circle cx="20" cy="18" r="4.6" fill="#fcd116"/><path d="m17.6 18.1 1.7 1.7 3.3-3.5" fill="none" stroke="#0b1c2c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b style="color:#0b1c2c">InvoiceSentinel</b> · Google Cloud AI Builder Cup 2026 · BFSI</span><span class="pg">13 / 13</span></div></section></body></html>

@@ -8,11 +8,11 @@ OUT_DOCX = HERE / "InvoiceSentinel-Proposal.docx"
 FOOT = "InvoiceSentinel · Google Cloud AI Builder Cup 2026 · BFSI: Intelligent Risk, Fraud &amp; Financial Experiences"
 
 def build_html():
+    import gen; gen.main()
     soup = BeautifulSoup((HERE / "proposal.html").read_text(), "html.parser")
     pages = soup.select("section.page")
     for i, s in enumerate(pages, 1):
-        if "cover" in s.get("class", []):
-            continue
+        continue  # footer now rendered by gen.py
         f = soup.new_tag("div", attrs={"class": "foot nodoc"})
         f.append(BeautifulSoup(f"<span>{FOOT}</span><span>{i} / {len(pages)}</span>", "html.parser"))
         s.append(f)
@@ -30,7 +30,7 @@ async def pdf(html):
         # overflow check: content bottom must stay above footer
         over = await pg.evaluate("""() => [...document.querySelectorAll('section.page')].map((s,i)=>{
             const r=s.getBoundingClientRect(); let m=0;
-            s.querySelectorAll('*').forEach(e=>{ if(e.closest('.foot')||e.closest('.band')) return; const b=e.getBoundingClientRect(); if(b.height>0) m=Math.max(m,b.bottom-r.top);});
+            s.querySelectorAll('*').forEach(e=>{ if(e.closest('.foot')||e.closest('.band')||e.closest('.rays')) return; const b=e.getBoundingClientRect(); if(b.height>0) m=Math.max(m,b.bottom-r.top);});
             return [i+1, Math.round(m)];})""")
         print("content bottom per page (limit ~690):", over)
         await pg.pdf(path=str(OUT_PDF), prefer_css_page_size=True, print_background=True)
@@ -166,4 +166,4 @@ def build_docx():
 
 if __name__ == "__main__":
     asyncio.run(pdf(build_html())); print("pdf:", OUT_PDF)
-    build_docx()
+    # DOCX export (build_docx) targets the v1 layout and is not run for the Sentinel redesign.

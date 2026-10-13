@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>InvoiceSentinel: Proposal (Google Cloud AI Builder Cup 2026, BFSI)</title>
+<link rel="stylesheet" href="style.css"></head><body>
+
+<!-- 1 COVER -->
+<section class="page cover" data-title="Cover">
+<div class="inner">
+  <div class="brand nodoc"><div class="logo">IS</div><div><div style="font-weight:600;color:#fff">InvoiceSentinel</div><div class="mono" style="color:#7cc4ff;font-size:11px">AP RISK DESK · PH SMES</div></div></div>
+  <h1>InvoiceSentinel</h1>
+  <p class="tag">Gemini-powered accounts-payable risk triage for Philippine SMEs: catch ghost receipts, bank-change scams and billing errors <b>before the payment goes out</b>.</p>
+  <p style="margin-top:22px;max-width:860px;color:#cfdcf0;font-size:15px">Proposal for the <b>Google Cloud AI Builder Cup 2026</b> (powered by Hack2skill, JAPAC). Problem statement: <b>BFSI: Intelligent Risk, Fraud &amp; Financial Experiences</b>.</p>
+  <div class="meta" style="right:400px;grid-template-columns:1.3fr 1fr">
+    <div><h3>Live prototype (Cloud Run)</h3><a href="https://invoicesentinel-web-1034883854575.asia-southeast1.run.app">invoicesentinel-web-1034883854575.asia-southeast1.run.app</a>
+      <h3 style="margin-top:12px">Public repository</h3><a href="https://github.com/BKDKUBO/invoice-sentinel">github.com/BKDKUBO/invoice-sentinel</a></div>
+    <div><h3>Team</h3>Manuel III Ocaña (team lead)<br><span class="fillc">[Team name and members: TO FILL]</span>
+      <h3 style="margin-top:12px">Demo video (≤ 3 min)</h3><span class="fillc">[YouTube / Vimeo / Drive link: TO FILL]</span></div>
+  </div>
+  <div class="band">
+    <div class="k">Built for the judging rubric</div>
+    <div class="row"><span>Technical merit &amp; GenAI</span><b>40%</b></div>
+    <div class="row"><span>Problem alignment &amp; impact</span><b>25%</b></div>
+    <div class="row"><span>Innovation &amp; creativity</span><b>25%</b></div>
+    <div class="row"><span>User experience &amp; design</span><b>10%</b></div>
+    <div class="k" style="margin-top:28px">Stack</div>
+    <div style="font-size:13.5px;line-height:1.6">Gemini 3.8 Flash (multimodal, structured JSON) · Cloud Run (asia-southeast1) · Secret Manager · Cloud Build · Next.js 14 · FastAPI</div>
+    <div class="k" style="margin-top:28px">Submission date</div>
+    <div style="font-size:13.5px">Prototype deadline: Oct 18, 2026</div>
+  </div>
+</div>
+</section>
+
+<!-- 2 EXEC SUMMARY -->
+<section class="page" data-title="Executive summary">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">01 · Executive summary</p><h1>Stop paying the ghost before the money leaves the account</h1></div>
+<div class="crit"><span class="pill">All criteria</span></div></div>
+<div class="cols c55">
+<div>
+<p><b>The problem.</b> Philippine businesses pay suppliers on documents that are easy to fake. The Bureau of Internal Revenue (BIR) has filed cases alleging billions of pesos in tax losses from "ghost" corporations that exist only to sell fictitious receipts, and from the companies that bought them. Globally, 68% of organizations surveyed by Basware saw at least one accounts-payable (AP) fraud attempt in 2024. Most Philippine SMEs have no fraud team; AP review is a clerk looking at a PDF.</p>
+<p><b>The solution.</b> InvoiceSentinel is a pre-payment risk desk. An analyst uploads an invoice image or PDF; <b>Gemini 3.8 Flash</b> reads the document directly (no OCR templates), returns structured fields and line items, and raises <b>explainable risk flags</b> with quoted evidence: ghost vendor, bank-change / business-email-compromise (BEC) payment redirection, 12% VAT math errors, overbilling, duplicates, template-looking documents, missing fields and amount mismatches. A deterministic control layer re-checks the arithmetic and enforces score floors. Each invoice becomes a case in a severity-ranked inbox where a human decides: <b>Approve, Escalate or Request docs</b>, with every step written to an audit trail.</p>
+<p><b>Status.</b> A working end-to-end prototype is live on Cloud Run in asia-southeast1, with the Gemini key in Secret Manager. In an 8-invoice test round of Philippine-style samples, every case landed in its expected severity band after calibration (legitimate invoices 0–5; ghost vendor 95–98; bank-change 95).</p>
+<div class="callout"><b>Scope, stated plainly:</b> InvoiceSentinel is AP risk triage before payment. It does not certify BIR compliance, is not a tax-authority system, and never auto-rejects. A person makes every payment decision.</div>
+</div>
+<div>
+<h2>Where each judging criterion is answered</h2>
+<table>
+<tr><th>Criterion (weight)</th><th>Evidence in this proposal</th></tr>
+<tr><td><b>Technical merit &amp; GenAI</b> (40%)</td><td>Multimodal Gemini pipeline, history-aware prompt, structured JSON, hybrid LLM + deterministic checks, retry with no silent fallback (§04–06); Cloud Run architecture (§07); measured evaluation (§08); cost and scale (§09)</td></tr>
+<tr><td><b>Problem alignment &amp; impact</b> (25%)</td><td>Cited PH ghost-receipt enforcement and global AP fraud data (§02); users and BFSI fit (§03); unit economics (§09)</td></tr>
+<tr><td><b>Innovation &amp; creativity</b> (25%)</td><td>Evidence-quoting risk cards, cross-document reasoning over case history, PH-specific signals: TIN, 12% VAT, GCash (§05, §10)</td></tr>
+<tr><td><b>User experience &amp; design</b> (10%)</td><td>Dashboard → inbox → case → decision → audit trail; real screenshots (§04, §06, §10)</td></tr>
+</table>
+<div class="cols c3" style="margin-top:14px;gap:12px">
+<div class="card stat"><div class="num b">8 / 8</div><div class="lbl">test invoices in the expected severity band</div></div>
+<div class="card stat"><div class="num b">~₱0.31</div><div class="lbl">Gemini cost per invoice (Flash, promo pricing)</div></div>
+<div class="card stat"><div class="num b">10–34 s</div><div class="lbl">upload-to-verdict latency</div></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 3 PROBLEM -->
+<section class="page" data-title="The problem">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">02 · The problem in the Philippines</p><h1>Fake receipts are an industry, and AP is where they get paid</h1></div>
+<div class="crit"><span class="pill o">Problem &amp; impact 25%</span></div></div>
+<div class="cols c4" style="gap:14px">
+<div class="card stat"><div class="num">₱25.5B</div><div class="lbl">alleged tax loss (2019–2021) from <b>4 ghost corporations</b> selling fictitious invoices: ₱17.63B income tax + ₱7.91B VAT, incl. surcharges and interest</div><div class="src">BIR complaints filed with DOJ, Mar 2023 [1][2]</div></div>
+<div class="card stat"><div class="num">₱1.41B</div><div class="lbl">tax deficiencies alleged against the <b>buyers</b>: 23 corporations, 56 corporate officers and 17 CPAs who used ghost receipts</div><div class="src">BIR press release, Aug 7, 2025 [3][4]</div></div>
+<div class="card stat"><div class="num" style="font-size:27px">~₱1.6B · ₱178.8M</div><div class="lbl">named brand cases: <b>Ever Bilena</b> (alleged total tax liability) and <b>World Balance</b> (alleged basic tax deficiencies), both tied to ghost receipts</div><div class="src">BIR RAFT task force; DOJ filings 2024–2025 [5][6]</div></div>
+<div class="card stat"><div class="num b">68%</div><div class="lbl">of organizations encountered at least one <b>AP fraud attempt</b> in 2024; only 31% use automated fraud-detection tools</div><div class="src">Basware / sharedserviceslink survey of 100 global leaders [7]</div></div>
+</div>
+<div class="cols c2" style="margin-top:16px">
+<div>
+<h2>Why this matters for a finance team</h2>
+<ul>
+<li><b>The documents look real.</b> Ghost receipts carry a TIN, a VAT line and a clean letterhead. The BIR describes sellers as corporations with no operations, employees or assets, set up only to issue receipts [3].</li>
+<li><b>The cost lands on the buyer.</b> In the 2025 cases it was the purchasing companies, their officers and their accountants who faced complaints [3]. A fake expense is cash out the door, followed by audit exposure.</li>
+<li><b>Payment-redirection scams hit the same desk.</b> A "new bank account, please don't call" notice on an otherwise normal invoice can drain an SME account in one transfer.</li>
+<li><b>SMEs review by eye.</b> Without a fraud team, the control is whoever opens the PDF. Basware's survey points to reliance on manual processes as a key gap [7].</li>
+</ul>
+</div>
+<div>
+<h2>How we use these numbers</h2>
+<div class="callout"><b>Caveats we keep:</b> the BIR figures are <b>allegations</b> in complaints and filings, not final court findings. They measure tax revenue loss, not AP losses. The 68% figure comes from a <b>global</b> survey of 100 respondents, not a Philippine one. We use them as motivating context for stronger private-sector controls. InvoiceSentinel does not investigate or relate to these specific cases.</div>
+<p>The pattern behind them is what we design for. A plausible-looking supplier document combines weak vendor substance (placeholder or unknown TIN, vague "facilitation fee" lines) with numbers that don't hold up, and it gets paid because no one had time to check. Those signals are visible on the document itself, so a multimodal model can read for them at the point of payment.</p>
+</div>
+</div>
+</section>
+
+<!-- 4 USERS & ALIGNMENT -->
+<section class="page" data-title="Users and BFSI alignment">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">03 · Who it serves and why it is BFSI</p><h1>A financial control for teams that can't afford a fraud department</h1></div>
+<div class="crit"><span class="pill o">Problem &amp; impact 25%</span></div></div>
+<div class="cols c3" style="gap:16px">
+<div class="card"><h3>AP clerk / analyst</h3><p class="small">Processes dozens of supplier invoices a week. Needs to know <b>which ones to look at first</b> and <b>why</b>, without reading every line.</p><p class="small"><b>Gets:</b> a ranked inbox, extracted fields, and risk cards with quoted evidence.</p></div>
+<div class="card"><h3>Finance manager / controller</h3><p class="small">Approves payment runs and answers to auditors. Needs <b>defensible decisions</b> and a view of exposure.</p><p class="small"><b>Gets:</b> a "₱ at risk" dashboard, Escalate / Request-docs workflow, and a timestamped audit trail.</p></div>
+<div class="card"><h3>SME owner</h3><p class="small">Signs the transfer. Needs protection from <b>bank-change scams</b> and padded expenses, not another ERP.</p><p class="small"><b>Gets:</b> a browser tool that works on a phone photo or PDF, at a cost of centavos per invoice.</p></div>
+</div>
+<div class="cols c2" style="margin-top:18px">
+<div>
+<h2>Alignment with the BFSI problem statement</h2>
+<p>The theme asks for AI that addresses <i>"detecting and mitigating fraud or risk, automating complex processes"</i> across financial services [10]. InvoiceSentinel does both:</p>
+<ul>
+<li><b>Fraud &amp; risk detection:</b> ghost vendors, BEC payment redirection, duplicates and overbilling are named fraud typologies, each a first-class flag.</li>
+<li><b>Process automation:</b> manual keying and arithmetic checks become a ~20-second multimodal read plus deterministic verification.</li>
+<li><b>Financial controls:</b> the AP-to-payment step is the last control before cash moves. That makes it relevant to banks (payment fraud), insurers (claims documents use the same pattern) and corporate finance.</li>
+</ul>
+</div>
+<div>
+<h2>Impact we can measure</h2>
+<table>
+<tr><th>Outcome</th><th>How the prototype shows it</th></tr>
+<tr><td>Fraudulent payments stopped</td><td>Ghost-vendor and bank-change samples score 95–98, <span class="sev cr">critical</span>, at the top of the inbox</td></tr>
+<tr><td>Analyst time saved</td><td>Legitimate invoices score 0–5, <span class="sev low">low</span>, so reviewers can clear them fast</td></tr>
+<tr><td>Errors caught, not just fraud</td><td>12% VAT and total mismatches checked deterministically on every invoice</td></tr>
+<tr><td>Audit readiness</td><td>Every ingest, flag and human action is logged with actor and Manila timestamp</td></tr>
+</table>
+<div class="callout green small" style="margin-top:10px"><b>Return on a single catch:</b> the bank-change sample redirects ₱50,400. Stopping that one payment covers about <b>160,000</b> Gemini Flash analyses at ~₱0.31 each.</div>
+</div>
+</div>
+</section>
+
+<!-- 5 SOLUTION FLOW -->
+<section class="page" data-title="Solution">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">04 · The solution, end to end</p><h1>Upload → Gemini reads and reasons → human decides → audit trail</h1></div>
+<div class="crit"><span class="pill">GenAI 40%</span><span class="pill g">UX 10%</span></div></div>
+<div class="steps">
+<div class="step"><span class="n">STEP 1</span><b>Upload</b>Drag in a PDF, PNG or JPG: a scan, a supplier PDF or a phone photo.</div>
+<div class="step ai"><span class="n">STEP 2 · GEMINI</span><b>Extract + reason</b>Vendor, TIN, invoice #, date, subtotal, VAT, total and line items, plus risk flags with explanation and evidence.</div>
+<div class="step ai"><span class="n">STEP 3 · CONTROLS</span><b>Verify + score</b>12% VAT recompute, line math, exact-duplicate check, severity score floor → 0–100 score.</div>
+<div class="step h"><span class="n">STEP 4 · HUMAN</span><b>Decide</b>Severity-ranked inbox. Approve, Escalate to fraud/finance, or Request docs, with an optional note.</div>
+<div class="step h"><span class="n">STEP 5 · RECORD</span><b>Audit + monitor</b>Timestamped trail per case; dashboard shows ₱ at risk, open, approved and escalated.</div>
+</div>
+<div class="cols c64" style="gap:22px">
+<figure><img src="assets/screen-dashboard.png" alt="InvoiceSentinel dashboard"><figcaption>Live dashboard (Cloud Run, Oct 12, 2026; seed demo data). KPI strip with ₱144,500 at risk across 3 high/critical open cases, recent cases with score and severity. The header shows the analyzer mode (<code>gemini · gemini-3.8-flash</code>).</figcaption></figure>
+<div>
+<h2>Design principles</h2>
+<ul class="small">
+<li><b>Triage, not verdicts.</b> The score orders the queue; it never blocks or pays anything by itself.</li>
+<li><b>Explain every flag.</b> Each risk card shows a code, severity, a plain-English explanation and the evidence it relied on, often quoted from the document.</li>
+<li><b>Context beyond one document.</b> Gemini sees the recent case history, so it can recognize a known vendor's TIN and spot near-duplicates.</li>
+<li><b>Never fake an answer.</b> If Gemini is unavailable after retries, the API returns a retryable error and the UI offers <i>Retry</i>. It never invents a "clean" case.</li>
+<li><b>Honest positioning.</b> A disclaimer on every case page: supports AP triage; does not certify BIR compliance.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- 6 GENAI CORE 1 -->
+<section class="page" data-title="GenAI design">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">05 · How Gemini is used (1/2)</p><h1>One multimodal call replaces OCR, data entry and first-pass review</h1></div>
+<div class="crit"><span class="pill">GenAI 40%</span><span class="pill p">Innovation 25%</span></div></div>
+<div class="cols c2">
+<div>
+<h2>The analysis call</h2>
+<ol class="small">
+<li><b>Input:</b> the raw file bytes (image or PDF) sent as a multimodal part to <code>gemini-3.8-flash</code> through the <code>google-genai</code> SDK. No OCR engine, no per-vendor template.</li>
+<li><b>Context:</b> the prompt includes a compact list of up to 40 prior cases (vendor, invoice #, total, date, TIN), so the model can reason <i>across</i> documents, not only within one.</li>
+<li><b>Contract:</b> <code>response_mime_type="application/json"</code>, temperature 0.2, and an explicit schema: fields, line items, a 1–2 sentence summary, <code>risk_flags[]</code> (code, severity, title, explanation, evidence) and <code>overall_risk_score</code>.</li>
+<li><b>Resilience:</b> up to 4 attempts with backoff on 429 / 503 / UNAVAILABLE / RESOURCE_EXHAUSTED. After that, an explicit "analysis unavailable" error. There is no mock fallback in live mode.</li>
+<li><b>Normalization:</b> output is parsed, type-checked and passed to the deterministic control layer (next page) before it becomes a case.</li>
+</ol>
+</div>
+<div>
+<h2>Calibration rules in the prompt</h2>
+<p class="small">The first test round showed the usual LLM failure modes: false alarms on plain layouts and blurry photos, and fraud labels on the wrong code. We wrote explicit PH-specific rules into the prompt:</p>
+<ul class="small">
+<li>A complete, consistent invoice (real-looking TIN, address, ATP/series, correct 12% VAT) should score <b>0–20 with no flags</b>. A plain or computer-generated layout alone is not a risk.</li>
+<li><b>Image quality is not fraud.</b> If a field is unreadable, lower confidence in the summary; use MISSING_FIELDS only for fields that are actually absent.</li>
+<li>Small non-VAT vendor receipts without customer TIN or terms are <b>normal in the Philippines</b>.</li>
+<li>Unit prices far above typical PH market prices → <b>OVERBILLING</b>, with the typical range as evidence. AMOUNT_MISMATCH is only for totals that don't add up.</li>
+<li>New or different bank account, a personal name or e-wallet, or "don't call us" → <b>UNUSUAL_PAYMENT_CHANGE</b> (high or critical).</li>
+<li>Same vendor, same total and a similar date but a different invoice # → <b>DUPLICATE_INVOICE</b> (near-duplicate).</li>
+<li>A TIN that matches an existing case is a <b>known vendor</b>; don't flag its TIN pattern as a ghost.</li>
+</ul>
+</div>
+</div>
+<div class="callout blue small"><b>Why GenAI is essential here:</b> the strongest fraud signals are semantic. Examples are a "facilitation fee" with no deliverable, a payment notice telling staff not to call, and ₱2,450 for a ream of bond paper. Rules and OCR can't see these; a multimodal model reads them the way a senior AP reviewer would, then shows its evidence.</div>
+</section>
+
+<!-- 7 GENAI CORE 2 -->
+<section class="page" data-title="Risk taxonomy and hybrid controls">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">06 · How Gemini is used (2/2)</p><h1>Eight explainable risk signals, backed by code where math allows</h1></div>
+<div class="crit"><span class="pill">GenAI 40%</span><span class="pill p">Innovation 25%</span></div></div>
+<table>
+<tr><th style="width:190px">Flag code</th><th>What Gemini looks for on the document</th><th style="width:330px">Deterministic layer (code, after Gemini)</th></tr>
+<tr><td><code>GHOST_VENDOR</code></td><td>Placeholder or implausible TIN (e.g., 000-000-000-000), thin vendor substance, vague single-line services, unexplained high totals</td><td>Known-vendor rule: prompt receives prior TINs, so a matching TIN isn't flagged; severity floor applies</td></tr>
+<tr><td><code>UNUSUAL_PAYMENT_CHANGE</code></td><td>"New bank details", remittance to a personal name or e-wallet (e.g., GCash), "do not call us", i.e. BEC / payment-redirection language</td><td>Severity floor: high ≥ 65, critical ≥ 85 score</td></tr>
+<tr><td><code>MATH_ERROR</code></td><td>Arithmetic inconsistencies the model notices while extracting</td><td><b>VAT recomputed:</b> flags if VAT ≠ 12% × VATable sales (tolerance max(₱1, 1%))</td></tr>
+<tr><td><code>AMOUNT_MISMATCH</code></td><td>Totals that don't reconcile with line items</td><td>Lines + VAT vs total (2% tolerance); VAT-inclusive receipts accepted when lines = total</td></tr>
+<tr><td><code>OVERBILLING</code></td><td>Unit prices far above typical PH market prices; cites the expected range</td><td>Mis-coded "overpriced / above market" mismatches re-coded to OVERBILLING</td></tr>
+<tr><td><code>DUPLICATE_INVOICE</code></td><td>Near-duplicates: same vendor and total, similar date, different invoice #</td><td>Exact match on vendor + invoice # + total against the case store</td></tr>
+<tr><td><code>TEMPLATE_LOOKING</code></td><td>Generic online-template look combined with missing substance (never layout alone)</td><td>Severity floor applies</td></tr>
+<tr><td><code>MISSING_FIELDS</code></td><td>Absent address, remittance details, TIN, ATP/series. Not unreadable fields on a blurry photo</td><td>Severity floor applies</td></tr>
+</table>
+<div class="cols c3" style="margin-top:14px;gap:16px">
+<div class="card"><h3>Why hybrid</h3><p class="small">LLMs are strong readers and weak calculators. Gemini does what only it can do (read any layout, judge semantics, quote evidence); code does what must be exact (tax math, exact duplicates, score monotonicity).</p></div>
+<div class="card"><h3>Score floor by severity</h3><p class="small">The overall score can never read lower than the worst flag implies (low 25 · medium 45 · high 65 · critical 85). A critical flag can't be buried by an optimistic model score.</p></div>
+<div class="card"><h3>Severity bands</h3><p class="small"><span class="sev low">low</span> 0–39 · <span class="sev med">medium</span> 40–64 · <span class="sev high">high</span> 65–84 · <span class="sev cr">critical</span> 85–100. The bands drive inbox order and the "₱ at risk" KPI (high + critical open totals).</p></div>
+</div>
+</section>
+
+<!-- 8 EXPLAINABILITY -->
+<section class="page" data-title="Explainability in the product">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">06b · Explainability in the product</p><h1>Every score comes with its reasons; every decision leaves a trail</h1></div>
+<div class="crit"><span class="pill">GenAI 40%</span><span class="pill g">UX 10%</span></div></div>
+<div style="display:grid;grid-template-columns:452px 1fr;gap:24px">
+<figure><img src="assets/crop-bec-left.png" alt="Bank-change BEC case analyzed live by Gemini" style="height:470px;width:auto"><figcaption><b>A. Live Gemini result</b>, sample <code>05-bec-bank-change.png</code> uploaded to the deployed app on Oct 12, 2026. Gemini extracted vendor, TIN, invoice #, date, VAT and line items from the image, wrote the summary, and scored it <b>95, critical</b> with an <code>UNUSUAL_PAYMENT_CHANGE</code> card. The card quotes the instruction to remit to a personal Union Bank account and not to call the office.</figcaption></figure>
+<div>
+<figure><img src="assets/crop-ghost-cards.png" alt="Explainable risk cards for a ghost vendor" style="height:262px;width:auto"><figcaption><b>B. Explainable risk cards</b> (ghost-vendor case): each card shows a severity, a flag code, a plain-English explanation and the evidence (all-zero TIN, an opaque "facilitation fee", no remittance block).</figcaption></figure>
+<div style="display:grid;grid-template-columns:180px 1fr;gap:16px;margin-top:10px;align-items:start">
+<figure><img src="assets/crop-ghost-audit.png" alt="Human decision and audit trail"></figure>
+<div><p class="small"><b>C. Human-in-the-loop decision and audit trail.</b> After the analyst clicks <i>Escalate</i>, the buttons lock and the trail records <i>escalated by ap_analyst</i> with a Manila (+08:00) timestamp, after the system's ingest event.</p>
+<p class="tiny">B and C are a seeded demo case, captured on the live app; the demo was reset afterwards via <code>POST /api/reset-demo</code>.</p></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 9 ARCHITECTURE -->
+<section class="page" data-title="Architecture">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">07 · Architecture on Google Cloud</p><h1>Serverless, region-local and ready to scale from zero</h1></div>
+<div class="crit"><span class="pill">Technical merit 40%</span></div></div>
+<div style="display:grid;grid-template-columns:860px 1fr;gap:22px;align-items:start">
+<figure><img src="assets/architecture.png" alt="InvoiceSentinel architecture diagram" style="border:none"><figcaption style="font-size:12.5px">Request path: (1) Gemini extracts and reasons, (2) the deterministic layer verifies and scores, (3) the case and its audit events are stored. Solid lines are live today; dashed lines are build, secret and roadmap paths.</figcaption></figure>
+<div>
+<div class="archtxt"><div><h3>Deployed today</h3><p class="small">Two Cloud Run services in <b>asia-southeast1</b>: the Next.js web, and the FastAPI API (1 vCPU / 512 Mi, 0–2 instances, 120 s timeout). The Gemini API key is stored in <b>Secret Manager</b> and mounted on the API. The web build runs on <b>Cloud Build</b>, because the API URL is inlined at build time. A billing budget alert guards cost.</p></div>
+<div><h3>Honest MVP limits</h3><p class="small">Cases live in a JSON store inside the container. They are seeded on start and ephemeral, so with two instances the case lists can briefly differ. There is no authentication yet. Both are deliberate prototype shortcuts, and both have a mapped production path.</p></div>
+<div><h3>Production path</h3><p class="small">Firestore for cases and audit events, Cloud Storage for invoice files (signed URLs), Firebase Auth / Identity Platform for analyst vs approver roles, the Gemini Batch API for bulk back-office runs (50% lower token price [8]), and Cloud Run autoscaling for peaks at month-end close.</p></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 10 EVALUATION -->
+<section class="page" data-title="Evaluation">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">08 · Evaluation</p><h1>8-sample test round: every case in its expected band after calibration</h1></div>
+<div class="crit"><span class="pill">Technical merit 40%</span></div></div>
+<div class="cols c64" style="gap:22px">
+<div>
+<table>
+<tr><th>#</th><th>Sample (in <code>samples/</code>)</th><th>Expected</th><th>Observed score</th><th>Result</th></tr>
+<tr><td>01</td><td>Legitimate VAT invoice: complete, correct 12% VAT</td><td>no flags</td><td><span class="sev low">0–5 low</span></td><td>Pass</td></tr>
+<tr><td>02</td><td>Legitimate small-vendor receipt (non-VAT)</td><td>no flags</td><td><span class="sev low">0–5 low</span></td><td>Pass</td></tr>
+<tr><td>03</td><td>Ghost vendor: placeholder TIN, vague service, personal GCash payee</td><td>GHOST_VENDOR</td><td><span class="sev cr">95–98 critical</span></td><td>Pass</td></tr>
+<tr><td>04</td><td>VAT math wrong: ₱7,860 shown vs 12% = ₱6,288</td><td>MATH_ERROR</td><td><span class="sev med">45–65 medium/high</span></td><td>Pass</td></tr>
+<tr><td>05</td><td>Bank-change BEC: new personal account, "don't call"</td><td>UNUSUAL_PAYMENT_CHANGE</td><td><span class="sev cr">95 critical</span></td><td>Pass</td></tr>
+<tr><td>06</td><td>Overbilled bond paper: ₱2,450/ream, ~10× market</td><td>OVERBILLING</td><td><span class="sev high">65–75 high</span></td><td>Pass</td></tr>
+<tr><td>07</td><td>Near-duplicate of the seeded Acme invoice</td><td>DUPLICATE_INVOICE</td><td><span class="sev high">70–75 high</span></td><td>Pass</td></tr>
+<tr><td>08</td><td>Blurry phone photo of a legitimate receipt</td><td>no false fraud flag</td><td><span class="sev low">5 low</span></td><td>Pass*</td></tr>
+</table>
+<p class="tiny" style="margin-top:6px">Ranges are across repeated runs during the test round. Sample 05 was re-run on the live deployment on Oct 12, 2026 and again scored 95, critical. *TIN extraction on blurry photos is a known limit (see right).</p>
+</div>
+<div>
+<h2>What changed to get here</h2>
+<ul class="small">
+<li>Calibrated prompt rules for legitimate PH documents, blur and non-VAT receipts (cut false positives on 01, 02 and 08).</li>
+<li>Deterministic 12% VAT check and VAT-inclusive total handling (made 04 reliable).</li>
+<li>Dedicated OVERBILLING code instead of a generic mismatch (06).</li>
+<li>Severity score floor, so a critical flag can't sit at a low score.</li>
+<li>Retries on 429/503, and removal of the silent mock fallback in live mode.</li>
+</ul>
+<h2>Performance and honest limits</h2>
+<ul class="small">
+<li><b>Latency:</b> about 10–34 s from upload to verdict, dominated by the Gemini call. That is fine for pre-payment review, not for point-of-sale.</li>
+<li><b>Run-to-run variance:</b> scores move a few points between runs (e.g., 45–65 on the VAT case) even at temperature 0.2. Bands and flags were stable; exact scores are not. The deterministic floor limits downside drift.</li>
+<li><b>Small test set:</b> 8 synthetic PH-style samples demonstrate behavior; they are not a statistical accuracy claim. A labeled evaluation set is on the roadmap.</li>
+<li><b>Blurry photos:</b> TIN digits can be misread, so the TIN-based checks are weaker on poor images.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- 11 COST & SCALE -->
+<section class="page" data-title="Cost and scalability">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">09 · Cost, scalability and sustainability</p><h1>Centavos per invoice: affordable for SMEs, scalable for banks</h1></div>
+<div class="crit"><span class="pill">Technical merit 40%</span><span class="pill o">Impact 25%</span></div></div>
+<div class="cols c2" style="gap:26px">
+<div>
+<h2>Gemini cost per invoice</h2>
+<table>
+<tr><th>Model</th><th>Through Dec 31, 2026</th><th>From Jan 1, 2027</th></tr>
+<tr><td>Gemini 3.8 Flash (default)</td><td><b>~₱0.31</b></td><td>~₱0.62</td></tr>
+<tr><td>Pro-tier model (optional second opinion)</td><td>~₱1.00</td><td>n/a</td></tr>
+</table>
+<h2 style="margin-top:16px">Monthly model cost by volume (Flash)</h2>
+<table>
+<tr><th>Invoices / month</th><th>Typical user</th><th>Promo pricing</th><th>From 2027</th></tr>
+<tr><td>200</td><td>Small SME</td><td><b>~₱62</b></td><td>~₱124</td></tr>
+<tr><td>2,000</td><td>Mid-market finance team</td><td><b>~₱623</b></td><td>~₱1,246</td></tr>
+<tr><td>50,000</td><td>Shared-services center / bank SME portfolio</td><td><b>~₱16,000</b></td><td>~₱31,000</td></tr>
+</table>
+<p class="tiny" style="margin-top:6px">Based on the official Gemini API paid-tier pricing as of Oct 12, 2026 (page updated Oct 9, 2026) [8]: Gemini 3.8 Flash US$0.75 / 1M input and US$3.75 / 1M output tokens through Dec 31, 2026, doubling from Jan 1, 2027. FX ₱62.77 per US$. Per-invoice token use (one image or PDF page plus prompt and JSON output) is an estimate; real cost varies with page count and output length. Post-2027 column = 2× promo.</p>
+</div>
+<div>
+<h2>Infrastructure</h2>
+<p class="small">Cloud Run scales to zero, so an idle desk costs nothing. At prototype and SME volumes, usage stays within Cloud Run's monthly free tier [9], and a US$8 (~₱500) budget alert with 50/90/100% thresholds protects the billing account. Costs become material only at sustained scale. By then the per-invoice model cost dominates, and it is still under a peso.</p>
+<h2>Scalability</h2>
+<ul class="small">
+<li><b>Stateless API:</b> horizontal autoscaling on Cloud Run. The only state moves to Firestore and Cloud Storage on the roadmap.</li>
+<li><b>Throughput levers:</b> Gemini Batch API for overnight bulk runs at half the token price [8]; Flash by default, with a Pro-tier second opinion only on high and critical cases.</li>
+<li><b>Multi-tenant ready:</b> case history is already passed per request, so tenant-scoped history is a data-layer change, not a model change.</li>
+</ul>
+<h2>Sustainability of the product</h2>
+<p class="small">With model costs under ₱1 per invoice, a low monthly subscription for SMEs, or a per-seat price bundled by an accounting firm or bank SME program, can cover costs with margin. The same engine can serve banks and insurers as an API for supplier-payment and claims-document screening.</p>
+</div>
+</div>
+</section>
+
+<!-- 12 INNOVATION & UX -->
+<section class="page" data-title="Innovation and UX">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">10 · Innovation and user experience</p><h1>A senior AP reviewer's judgment, in an analyst's queue</h1></div>
+<div class="crit"><span class="pill p">Innovation 25%</span><span class="pill g">UX 10%</span></div></div>
+<div class="cols c55" style="gap:24px">
+<div>
+<h2>How it differs from the usual options</h2>
+<table>
+<tr><th>Approach</th><th>What it misses</th><th>InvoiceSentinel</th></tr>
+<tr><td>Manual eyeballing</td><td>Inconsistent, slow, skipped at month-end</td><td>Every invoice read, scored and ranked</td></tr>
+<tr><td>OCR + rules / AP automation</td><td>Needs templates; can't judge "vague fee" or "don't call us"</td><td>Template-free multimodal reading plus semantic judgment</td></tr>
+<tr><td>Generic AI chat with a PDF</td><td>No schema, no history, no workflow, no audit</td><td>Structured JSON, case-history context, decisions and audit trail</td></tr>
+<tr><td>Opaque fraud score</td><td>Analysts can't verify or defend it</td><td>Evidence-quoting cards plus deterministic math checks</td></tr>
+</table>
+<h2 style="margin-top:14px">What is new</h2>
+<ul class="small">
+<li><b>Cross-document reasoning:</b> the model sees recent case history, so it recognizes known vendors and near-duplicates instead of judging each PDF in isolation.</li>
+<li><b>PH-first signals:</b> TIN patterns, 12% VAT, ATP/series, non-VAT receipts, GCash and personal-account payees, and peso market prices for overbilling.</li>
+<li><b>Hybrid trust model:</b> GenAI for judgment, code for arithmetic and score floors, a human for the decision.</li>
+</ul>
+</div>
+<div>
+<h2>User experience</h2>
+<figure><img src="assets/screen-inbox.png" alt="Case inbox"><figcaption>Case inbox (live): severity-ranked queue with flag chips, totals, scores and status.</figcaption></figure>
+<ul class="small" style="margin-top:10px">
+<li><b>Three clicks to a decision:</b> inbox → case → Approve / Escalate / Request docs, with an optional note.</li>
+<li><b>Readable at a glance:</b> severity badges use text labels as well as color. Amounts are in ₱; timestamps are Manila time.</li>
+<li><b>Familiar inputs:</b> drag-and-drop or file picker for PDF, PNG and JPG up to 20 MB, including phone photos.</li>
+<li><b>Transparent system state:</b> the header shows the API status and model; failures show a clear error with <i>Retry</i>.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- 13 ROADMAP & RESPONSIBLE AI -->
+<section class="page" data-title="Roadmap and responsible AI">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">11 · Roadmap and responsible AI</p><h1>From prototype to the payment-control layer for PH SMEs</h1></div>
+<div class="crit"><span class="pill">Scalability 40%</span><span class="pill o">Impact 25%</span></div></div>
+<div class="cols c2" style="gap:26px">
+<div>
+<table>
+<tr><th style="width:120px">Horizon</th><th>Deliverable</th></tr>
+<tr><td><b>Next</b><br><span class="tiny">post-submission</span></td><td><b>Firestore persistence + Cloud Storage</b> for cases, files and audit events; <b>Firebase Auth</b> with analyst and approver roles</td></tr>
+<tr><td><b>Next</b></td><td><b>Vendor master and TIN enrichment</b>: known-vendor list, bank-account history per vendor, first-seen vendor alerts</td></tr>
+<tr><td><b>Next</b></td><td><b>Email "Request docs"</b>: send the supplier a templated request from the case and log the reply</td></tr>
+<tr><td><b>Later</b></td><td><b>ERP / accounting integrations</b> (e.g., QuickBooks, Xero): pull bills in, push decisions back, hold payment on Escalate</td></tr>
+<tr><td><b>Later</b></td><td><b>Batch processing</b> of whole payment runs via the Gemini Batch API</td></tr>
+<tr><td><b>Later</b></td><td><b>PH-specific BIR ATP validation</b> (Authority to Print / series checks) as an enrichment signal, not a compliance certification</td></tr>
+<tr><td><b>Later</b></td><td><b>Tagalog UI</b> and explanations, for wider SME adoption</td></tr>
+<tr><td><b>Ongoing</b></td><td>Labeled PH invoice evaluation set; precision/recall tracking per flag; prompt and model regression tests</td></tr>
+</table>
+</div>
+<div>
+<h2>Responsible AI by design</h2>
+<ul class="small">
+<li><b>Human-in-the-loop:</b> no automated rejection or payment. The model ranks; people decide, and their decisions are logged.</li>
+<li><b>Explainability:</b> every flag carries an explanation and evidence that an analyst can check against the document.</li>
+<li><b>No fabricated output:</b> if the model is unavailable, the system says so and offers a retry instead of guessing.</li>
+<li><b>Fairness to suppliers:</b> small and non-VAT vendors are explicitly not penalized for normal informality, and blur is not treated as fraud.</li>
+<li><b>Data handling:</b> on the Gemini API paid tier, content is not used to improve Google's products [8]; production runs on the paid tier and adds signed URLs, upload scanning, rate limits and retention controls.</li>
+<li><b>Clear scope:</b> not a BIR tool, not tax advice, not a compliance certificate.</li>
+</ul>
+<div class="callout small"><b>Key risks and mitigations:</b> score variance → bands, floors and human review; adversarial "clean-looking" fakes → vendor master and bank-history checks on the roadmap; model or pricing changes → model name is configurable (<code>GEMINI_MODEL</code>) and the cost is tracked per invoice.</div>
+</div>
+</div>
+</section>
+
+<!-- 14 TEAM & REFERENCES -->
+<section class="page" data-title="Team and references">
+<div class="topbar"></div>
+<div class="head"><div><p class="kicker">12 · Team, submission links and references</p><h1>Team and sources</h1></div>
+<div class="crit"><span class="pill">Submission</span></div></div>
+<div class="cols c46" style="gap:26px">
+<div>
+<h2>Team <span class="fill">[TO FILL]</span></h2>
+<table>
+<tr><th>Member</th><th>Role / focus</th></tr>
+<tr><td>Manuel III Ocaña</td><td>Team lead · <span class="fill">[role / focus: TO FILL]</span></td></tr>
+<tr><td><span class="fill">[Member 2 name: TO FILL]</span></td><td><span class="fill">[role: TO FILL]</span></td></tr>
+<tr><td><span class="fill">[Member 3 name: optional]</span></td><td><span class="fill">[role: optional]</span></td></tr>
+<tr><td><span class="fill">[Member 4 name: optional]</span></td><td><span class="fill">[role: optional]</span></td></tr>
+</table>
+<p class="tiny" style="margin-top:6px">Team name: <span class="fill">[TO FILL]</span>. Teams of 2–4 working professionals, based in JAPAC.</p>
+<h2 style="margin-top:14px">Submission links</h2>
+<table>
+<tr><td style="width:120px"><b>Live prototype</b></td><td class="small"><a href="https://invoicesentinel-web-1034883854575.asia-southeast1.run.app">invoicesentinel-web-1034883854575.asia-southeast1.run.app</a></td></tr>
+<tr><td><b>GitHub</b></td><td class="small"><a href="https://github.com/BKDKUBO/invoice-sentinel">github.com/BKDKUBO/invoice-sentinel</a></td></tr>
+<tr><td><b>Demo video</b></td><td><span class="fill">[public YouTube / Vimeo / Drive link: TO FILL]</span></td></tr>
+<tr><td><b>Theme</b></td><td class="small">BFSI: Intelligent Risk, Fraud &amp; Financial Experiences</td></tr>
+</table>
+</div>
+<div>
+<h2>References (accessed Oct 12, 2026)</h2>
+<ol class="refs">
+<li>Rappler, "P25.5 billion 'lost': BIR files tax complaints vs firms selling fake receipts," Mar 16, 2023. <a href="https://www.rappler.com/business/bureau-internal-revenue-files-tax-complaints-firms-selling-fake-receipts/">rappler.com/business/bureau-internal-revenue-files-tax-complaints-firms-selling-fake-receipts</a></li>
+<li>BusinessWorld, "BIR goes after firms issuing fake receipts," Mar 17, 2023 (₱17.63B income tax, ₱7.91B VAT, 2019–2021). <a href="https://bworldonline.com/top-stories/2023/03/17/511179/bir-goes-after-firms-issuing-fake-receipts/">bworldonline.com/top-stories/2023/03/17/511179</a></li>
+<li>Bureau of Internal Revenue, press release, Aug 7, 2025: 23 tax evasion cases against 23 corporations, 56 corporate officers, 17 CPAs; ₱1.41B tax deficiency. <a href="https://bir-cdn.bir.gov.ph/BIR/pdf/PR37AUG0725.pdf">bir-cdn.bir.gov.ph/BIR/pdf/PR37AUG0725.pdf</a></li>
+<li>Philstar, "23 firms face tax evasion cases for P1.4 billion ghost receipts," Aug 8, 2025. <a href="https://www.philstar.com/business/2025/08/08/2463870/23-firms-face-tax-evasion-cases-p14-billion-ghost-receipts">philstar.com/business/2025/08/08/2463870</a></li>
+<li>Philstar, "BIR files case vs Ever Bilena over P1.6 billion tax liability," Feb 6, 2024. <a href="https://www.philstar.com/nation/2024/02/06/2331285/bir-files-case-vs-ever-bilena-over-p16-billion-tax-liability">philstar.com/nation/2024/02/06/2331285</a></li>
+<li>Manila Bulletin, "BIR snares World Balance over fictitious receipts," Jul 21, 2025 (₱178.8M basic tax deficiencies). <a href="https://mb.com.ph/2025/07/21/bir-snares-world-balance-over-fictitious-receipts">mb.com.ph/2025/07/21/bir-snares-world-balance-over-fictitious-receipts</a></li>
+<li>Basware with sharedserviceslink, "The Rise in AP Fraud: Frequency, Sophistication, and Impact" (survey of 100 global business leaders and CFOs). <a href="https://www.basware.com/en/resources/the-rise-in-ap-fraud-frequency-sophistication-and-impact">basware.com/en/resources/the-rise-in-ap-fraud-frequency-sophistication-and-impact</a></li>
+<li>Google AI for Developers, "Gemini Developer API pricing" (last updated Oct 9, 2026). <a href="https://ai.google.dev/gemini-api/docs/pricing">ai.google.dev/gemini-api/docs/pricing</a></li>
+<li>Google Cloud, "Cloud Run pricing" (free tier). <a href="https://cloud.google.com/run/pricing">cloud.google.com/run/pricing</a></li>
+<li>Google Cloud AI Builder Cup 2026, Themes, requirements and judging criteria. <a href="https://aibuildercup.com/themes.html">aibuildercup.com/themes.html</a></li>
+</ol>
+<p class="tiny">BIR figures are allegations in complaints and filings, as publicly reported. They are not court findings.</p>
+</div>
+</div>
+</section>
+
+</body></html>
