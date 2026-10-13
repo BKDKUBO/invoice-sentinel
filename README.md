@@ -262,6 +262,7 @@ Same invoice → same verdict. `api/scoring.py`:
 - Gemini runs at **temperature 0, fixed seed**, with a **JSON response schema** (enum-constrained flag codes, severities, document type and BIR element statuses), and a 60 s per-call timeout with retries.
 - **Severities are normalised by rule**, not taken from Gemini: MATH_ERROR by VAT discrepancy (≥2% of total → high, ≥0.2% → medium, else low); DUPLICATE_INVOICE → critical only when the same vendor + invoice number already exists in stored cases, near-duplicate → high; GHOST_VENDOR corroborated by an invalid TIN or unknown vendor → critical if ≥ approval limit else high, uncorroborated → medium; UNUSUAL_PAYMENT_CHANGE vs. vendor master → critical, Gemini-only (e-wallet/personal name) → high; OVERBILLING/AMOUNT_MISMATCH → high; TEMPLATE_LOOKING/MISSING_FIELDS capped at medium and dropped when the deterministic BIR checklist already flags the document.
 - **Score is computed from flags**: worst severity weight (low 20, medium 45, high 70, critical 90) + 5 per extra medium-or-worse flag (max +10), capped at 100; no flags → 0. Gemini's own score is kept as `gemini_score` for reference.
+- `API_ONLY=1 bash deploy.sh` redeploys just the API. Seed cases are re-dated on every reset-demo (newest 1 day ago, spread over the last 1-6 days, Asia/Manila).
 - Measure with `python samples/stability.py 3` (resets between passes; 08 runs alone).
 
 ## API surface

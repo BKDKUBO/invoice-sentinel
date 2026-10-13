@@ -8,3 +8,4 @@ google-cloud-firestore==2.34.1
 google-cloud-storage==3.17.0
 python-dotenv==1.0.1
 aiofiles==24.1.0
+tzdata>=2024.1

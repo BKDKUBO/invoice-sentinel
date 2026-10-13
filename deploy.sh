@@ -39,12 +39,14 @@ gcloud run deploy invoicesentinel-api --source "$TMP" --region "$REGION" \
   --set-env-vars "STORAGE_BACKEND=firestore,FIRESTORE_PROJECT=${PROJECT},UPLOAD_BUCKET=${BUCKET}" --quiet
 API_URL=$(gcloud run services describe invoicesentinel-api --region "$REGION" --format='value(status.url)')
 
-# --- Web (Next.js). NEXT_PUBLIC_API_URL is inlined at build time. ---
+# --- Web (Next.js). NEXT_PUBLIC_API_URL is inlined at build time. API_ONLY=1 skips the web rebuild. ---
+if [ "${API_ONLY:-0}" != "1" ]; then
 IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/cloud-run-source-deploy/invoicesentinel-web:$(date +%s)"
 gcloud builds submit "$ROOT/web" --region "$REGION" --config "$ROOT/deploy/cloudbuild-web.yaml" \
   --substitutions "_IMAGE=${IMAGE},_API_URL=${API_URL}"
 gcloud run deploy invoicesentinel-web --image "$IMAGE" --region "$REGION" \
   --port 3000 --cpu 1 --memory 512Mi --min-instances "$WEB_MIN" --max-instances 2 --allow-unauthenticated --quiet
+fi
 WEB_URL=$(gcloud run services describe invoicesentinel-web --region "$REGION" --format="value(status.url)")
 WEB_URLS=$(gcloud run services describe invoicesentinel-web --region "$REGION" --format=json | python3 -c "import json,sys;d=json.load(sys.stdin);a=d[\"metadata\"].get(\"annotations\",{}).get(\"run.googleapis.com/urls\");print(\",\".join(json.loads(a)) if a else d[\"status\"][\"url\"])")
 
