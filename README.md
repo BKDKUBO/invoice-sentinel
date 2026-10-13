@@ -52,6 +52,12 @@ Ghost and fictitious receipts remain a material fraud and leakage risk for Phili
 
 Storage env vars: `STORAGE_BACKEND=firestore`, `FIRESTORE_PROJECT`, optional `FIRESTORE_DATABASE` (default `(default)`) and `FIRESTORE_PREFIX` (default `is_`), `UPLOAD_BUCKET`. Locally, Firestore uses Application Default Credentials (`gcloud auth application-default login`). `POST /api/reset-demo` rewrites the seed cases, vendors, POs, settings and clears chats in whichever backend is active. Expected cost at demo scale: within the Firestore free tier (50k reads / 20k writes per day) and a few MB of Storage.
 
+## Live
+
+- App: **https://invoicesentinel.web.app** (Firebase Hosting, rewrites `**` to the Cloud Run service `invoicesentinel-web`, asia-southeast1). Direct: https://invoicesentinel-web-1034883854575.asia-southeast1.run.app
+- The browser calls the API (Cloud Run) directly, so the streamed agent calls are not subject to Firebase Hosting's 60 s rewrite timeout.
+- Hosting config: `firebase.json` (site `invoicesentinel`). Deploy with `firebase deploy --only hosting --project gen-lang-client-0252871691`.
+
 ## How to use
 
 > Judges: open **Check an invoice → Try a sample** and click any bundled invoice (e.g. 05 bank-change scam, 03 ghost vendor, 12 then 13 split invoice). No files needed.

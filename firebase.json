@@ -1,0 +1,10 @@
+{
+  "hosting": {
+    "site": "invoicesentinel",
+    "public": "hosting/public",
+    "ignore": ["**/.*"],
+    "rewrites": [
+      { "source": "**", "run": { "serviceId": "invoicesentinel-web", "region": "asia-southeast1" } }
+    ]
+  }
+}

@@ -52,5 +52,5 @@ WEB_URLS=$(gcloud run services describe invoicesentinel-web --region "$REGION" -
 
 # --- CORS: allow the web origin on the API ---
 gcloud run services update invoicesentinel-api --region "$REGION" \
-  --update-env-vars "^@^CORS_ORIGINS=${WEB_URLS},http://localhost:3000" --quiet
+  --update-env-vars "^@^CORS_ORIGINS=${WEB_URLS},https://invoicesentinel.web.app,https://invoicesentinel.firebaseapp.com,http://localhost:3000" --quiet
 echo "API: $API_URL"; echo "WEB: $WEB_URL"
