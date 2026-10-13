@@ -33,7 +33,7 @@ export function BirPanel({ b }: { b: BirInfo | null }) {
                 <span className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ring-1 ${tone[i.status]?.[1]}`}>{tone[i.status]?.[0]}</span>
                 <span>
                   <span className={i.status === "missing" || i.status === "invalid" ? "font-semibold text-red-700" : "text-slate-800"}>{i.label}</span>
-                  <span className="ml-1 text-[10px] text-slate-400">{i.ref}</span>
+                  <span className="ml-1 text-[10px] text-slate-500">{i.ref}</span>
                   {i.note && <span className="block text-[11px] text-slate-500">{i.note}</span>}
                 </span>
               </li>
@@ -41,7 +41,7 @@ export function BirPanel({ b }: { b: BirInfo | null }) {
           </ul>
         </>
       )}
-      <p className="mt-3 text-[11px] text-slate-400">Format check only — not a BIR certification. Verify registration via BIR ORUS / Form 2303.</p>
+      <p className="mt-3 text-[11px] text-slate-500">Format check only — not a BIR certification. Verify registration via BIR ORUS / Form 2303.</p>
     </section>
   );
 }

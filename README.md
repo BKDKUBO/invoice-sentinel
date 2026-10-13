@@ -45,6 +45,8 @@ Storage env vars: `STORAGE_BACKEND=firestore`, `FIRESTORE_PROJECT`, optional `FI
 
 ## How to use
 
+> Judges: open **Check an invoice → Try a sample** and click any bundled invoice (e.g. 05 bank-change scam, 03 ghost vendor, 12 then 13 split invoice). No files needed.
+
 1. **Dashboard** — open the web app; the strip shows cases this week and ₱ at risk. *Reset seed demo* restores the 5 demo cases.
 2. **Vendors & POs** — check the approved-vendor master (TIN, verified bank/GCash, contact on file) and purchase orders; add/edit as needed. Set the approval limit / split window here.
 3. **Upload** — drop an invoice or receipt photo/PDF (try `samples/*.png`). Gemini reads it; the deterministic checks run; a case opens with a 0-100 risk score.

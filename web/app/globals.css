@@ -7,7 +7,30 @@
 }
 
 body {
-  @apply bg-slate-50 text-navy-900 antialiased;
+  @apply bg-slate-50 font-sans text-navy-900 antialiased;
+}
+
+/* Visible keyboard focus everywhere (WCAG 2.4.7) */
+:focus-visible {
+  outline: 3px solid #e6b422;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.ph-accent {
+  background: linear-gradient(90deg, #0038a8 0 33.3%, #ce1126 33.3% 66.6%, #fcd116 66.6% 100%);
+}
+
+@keyframes is-pulse-bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+.is-indeterminate {
+  animation: is-pulse-bar 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-indeterminate, .animate-spin, .animate-pulse { animation: none !important; }
 }
 
 ::-webkit-scrollbar {

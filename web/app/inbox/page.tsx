@@ -55,7 +55,7 @@ export default async function InboxPage() {
                   <Link href={`/cases/${c.id}`} className="font-medium text-navy-900 hover:underline">
                     {c.extraction.vendor || "Unknown vendor"}
                   </Link>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-slate-500">
                     {c.extraction.invoice_number || "—"} · {c.filename}
                   </div>
                 </td>

@@ -12,6 +12,10 @@ from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse, StreamingResponse
+import json as _json
+import queue
+import threading
 from fastapi.middleware.cors import CORSMiddleware
 
 from analyzer import AnalysisUnavailable, analyze_invoice, gemini_configured, gemini_model_name, now_manila_iso
@@ -110,6 +114,29 @@ def dashboard() -> DashboardStats:
     )
 
 
+@app.get("/api/analytics")
+def analytics() -> dict[str, Any]:
+    """Flag breakdown, severity mix and a 14-day trend for the dashboard charts."""
+    cases = store.list_cases()
+    flags: dict[str, int] = {}
+    sev = {"low": 0, "medium": 0, "high": 0, "critical": 0}
+    today = datetime.now(MANILA).date()
+    days = {(today - timedelta(days=i)).isoformat(): {"cases": 0, "flagged": 0, "at_risk": 0.0} for i in range(13, -1, -1)}
+    for c in cases:
+        for f in c.get("risk_flags") or []:
+            flags[f.get("code", "?")] = flags.get(f.get("code", "?"), 0) + 1
+        sv = c.get("severity") or "low"
+        sev[sv] = sev.get(sv, 0) + 1
+        d = str(c.get("created_at") or "")[:10]
+        if d in days:
+            days[d]["cases"] += 1
+            if sv in ("high", "critical"):
+                days[d]["flagged"] += 1
+                days[d]["at_risk"] += float((c.get("extraction") or {}).get("total") or 0)
+    return {"flags": sorted(({"code": k, "count": v} for k, v in flags.items()), key=lambda x: -x["count"]),
+            "severity": sev, "trend": [{"date": k, **v} for k, v in days.items()], "total_cases": len(cases)}
+
+
 @app.get("/api/cases")
 def list_cases() -> list[dict[str, Any]]:
     return store.list_cases()
@@ -126,13 +153,17 @@ def get_case(case_id: str) -> dict[str, Any]:
 @app.post("/api/analyze", response_model=AnalyzeResponse)
 async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
     content = await file.read()
+    from starlette.concurrency import run_in_threadpool
+
+    return await run_in_threadpool(_analyze_bytes, content, file.filename or "upload.bin", file.content_type or "application/octet-stream")
+
+
+def _analyze_bytes(content: bytes, filename: str, mime: str, source: str = "upload") -> AnalyzeResponse:
     if not content:
         raise HTTPException(400, "Empty file")
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(400, "File too large (max 20MB)")
 
-    filename = file.filename or "upload.bin"
-    mime = file.content_type or "application/octet-stream"
     allowed = {
         "application/pdf",
         "image/png",
@@ -173,7 +204,7 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
         "updated_at": ts,
         "filename": filename,
         "mime_type": mime,
-        "source": "upload",
+        "source": source,
         "upload_ref": upload_ref,
         "extraction": analysis["extraction"],
         "risk_flags": analysis["risk_flags"],
@@ -203,6 +234,54 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
 
     store.upsert_case(case)
     return AnalyzeResponse(case=Case.model_validate(case), mode=mode)  # type: ignore[arg-type]
+
+
+SAMPLES = {
+    "01-legit-vat-invoice.png": "Clean VAT invoice — matches vendor master & PO",
+    "02-legit-small-vendor-receipt.png": "Small non-VAT carinderia receipt",
+    "03-ghost-placeholder-tin.png": "Ghost vendor: placeholder TIN, GCash-only, ₱135k",
+    "04-vat-math-wrong.png": "VAT computed at 15% instead of 12%",
+    "05-bec-bank-change.png": "Known vendor asks to pay a NEW personal bank account",
+    "06-overbilled-bond-paper.png": "Bond paper billed 10× the PO price",
+    "07-near-duplicate-acme.png": "Near-duplicate of an Acme invoice",
+    "08-blurry-legit-receipt.jpg": "Blurry phone photo of a legit receipt",
+    "09-known-vendor-new-bank.png": "Quiet bank change — only the vendor master catches it",
+    "10-exceeds-po-qty.png": "Invoice exceeds PO quantity and unit price",
+    "11-nonexistent-po.png": "Cites a PO that doesn't exist",
+    "12-split-invoice-a.png": "Split invoice part A (₱48,000)",
+    "13-split-invoice-b.png": "Split invoice part B (₱48,000, 2 days later)",
+    "14-malformed-tin-no-bir.png": "Malformed TIN, missing BIR invoice elements",
+}
+
+
+def _samples_dir() -> Path | None:
+    for p in (os.getenv("SAMPLES_DIR"), str(Path(__file__).resolve().parent / "samples"), str(Path(__file__).resolve().parent.parent / "samples")):
+        if p and Path(p).is_dir():
+            return Path(p)
+    return None
+
+
+@app.get("/api/samples")
+def list_samples() -> list[dict[str, Any]]:
+    d = _samples_dir()
+    return [{"name": k, "description": v, "url": f"/api/samples/{k}"} for k, v in SAMPLES.items() if d and (d / k).exists()]
+
+
+@app.get("/api/samples/{name}")
+def get_sample(name: str):
+    d = _samples_dir()
+    if name not in SAMPLES or not d or not (d / name).exists():
+        raise HTTPException(404, "Sample not found")
+    return FileResponse(d / name)
+
+
+@app.post("/api/samples/{name}/analyze", response_model=AnalyzeResponse)
+def analyze_sample(name: str) -> AnalyzeResponse:
+    d = _samples_dir()
+    if name not in SAMPLES or not d or not (d / name).exists():
+        raise HTTPException(404, "Sample not found")
+    mime = "image/jpeg" if name.endswith(".jpg") else "image/png"
+    return _analyze_bytes((d / name).read_bytes(), name, mime, source="sample")
 
 
 @app.post("/api/cases/{case_id}/action")
@@ -320,6 +399,50 @@ def ask_endpoint(case_id: str, body: dict[str, Any]) -> dict[str, Any]:
     msgs = chats.append(case_id, {"role": "user", "content": q, "at": ts},
                         {"role": "assistant", "content": res["answer"], "at": now_manila_iso(), **{k: v for k, v in res.items() if k != "answer"}})
     return {"reply": msgs[-1], "history": msgs}
+
+
+@app.post("/api/cases/{case_id}/ask-stream")
+def ask_stream(case_id: str, body: dict[str, Any]):
+    """Same as /ask but streams NDJSON: {"type":"step",...} per agent tool call, then {"type":"final",...} or {"type":"error"}."""
+    q = str(body.get("question") or "").strip()
+    if not q:
+        raise HTTPException(400, "Question is required")
+    if not gemini_configured():
+        raise HTTPException(503, "Ask the case needs Gemini (no API key configured)")
+    case, ev, img, _, ctx = _case_ctx(case_id)
+    events: "queue.Queue[dict | None]" = queue.Queue()
+
+    def work() -> None:
+        try:
+            res = agent_ask(case, ctx, chats.get(case_id), q[:2000], str(body.get("language") or "auto"), img,
+                            on_step=lambda st: events.put({"type": "step", **st}))
+            msgs = chats.append(case_id, {"role": "user", "content": q, "at": now_manila_iso()},
+                                {"role": "assistant", "content": res["answer"], "at": now_manila_iso(),
+                                 **{k: v for k, v in res.items() if k != "answer"}})
+            events.put({"type": "final", "reply": msgs[-1], "history": msgs})
+        except AnalysisUnavailable as exc:
+            logging.getLogger("invoicesentinel").warning("Ask failed: %s", str(exc)[:300])
+            events.put({"type": "error", "status": 503, "message": "Assistant unavailable, please retry"})
+        except Exception as exc:  # noqa: BLE001
+            logging.getLogger("invoicesentinel").exception("Ask crashed")
+            events.put({"type": "error", "status": 500, "message": str(exc)[:200]})
+        finally:
+            events.put(None)
+
+    threading.Thread(target=work, daemon=True).start()
+
+    def gen():
+        while True:
+            try:
+                ev = events.get(timeout=15)
+            except queue.Empty:
+                yield _json.dumps({"type": "ping"}) + "\n"
+                continue
+            if ev is None:
+                return
+            yield _json.dumps(ev, ensure_ascii=False, default=str) + "\n"
+
+    return StreamingResponse(gen(), media_type="application/x-ndjson", headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"})
 
 
 @app.post("/api/cases/{case_id}/draft-email")
