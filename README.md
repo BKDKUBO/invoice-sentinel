@@ -10,6 +10,13 @@ Upload invoices/receipts (PDF/PNG/JPG) → Gemini multimodal extracts fields and
 
 Ghost and fictitious receipts remain a material fraud and leakage risk for Philippine businesses. High-profile enforcement actions — including cases publicly reported in the **₱25.5B** range involving fake invoices/receipts — underscore how fabricated vendor documents can inflate deductible expenses and move cash. SMEs often lack dedicated fraud teams; a lightweight multimodal AP desk that **triages before payment** closes that gap without pretending to be a regulator.
 
+## Team: BKD KUBO
+
+| Member | Role |
+|---|---|
+| Manuel III Ocaña | Product Lead & Solution Architect |
+| Elson Mojics | Domain Lead (Finance) & QA |
+
 ## Theme
 
 **BFSI** (Banking, Financial Services & Insurance) — finance operations / AP controls for SMEs and mid-market finance teams.

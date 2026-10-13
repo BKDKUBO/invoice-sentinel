@@ -100,7 +100,7 @@ PAGES.append(f'''<section class="page cover"><div class="tri"></div>
 <div style="margin-top:26px"><span class="theme">Theme · BFSI: Intelligent Risk, Fraud &amp; Financial Experiences</span></div>
 <div style="position:absolute;left:70px;right:70px;bottom:40px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px;font-size:13px;color:#c9d6e3;border-top:1px solid #2a4663;padding-top:16px">
 <div><div class="tiny" style="color:#e6b422;font-weight:700">LIVE PROTOTYPE · CLOUD RUN</div>{URL}</div>
-<div><div class="tiny" style="color:#e6b422;font-weight:700">TEAM</div>[TEAM NAME]</div>
+<div><div class="tiny" style="color:#e6b422;font-weight:700">TEAM BKD KUBO</div>Manuel III Ocaña · Elson Mojics</div>
 <div><div class="tiny" style="color:#e6b422;font-weight:700">GOOGLE CLOUD AI BUILDER CUP 2026</div>Prototype submission · Oct 2026</div></div></section>''')
 
 PAGES.append(f'''<section class="page">{head("The problem","01","Fake receipts are an industry, and accounts payable is where they get paid",["Problem &amp; impact"])}
@@ -153,7 +153,7 @@ PAGES.append(f'''<section class="page">{head("Features · controls","04","Determ
 <div class="card">{ic("scan")}<h3>Gemini extraction</h3><p class="small mute">Multimodal read with a JSON schema at temperature 0, seed 7, with retries and a 60 s timeout.</p></div></div>
 <div class="grid g3" style="gap:16px"><div><img class="shot" src="assets/after/vendor-master-mismatch.png" style="height:190px;width:100%;object-fit:cover;object-position:top"><p class="cap">Sample 09: bank account differs from the vendor master.</p></div>
 <div><img class="shot" src="assets/after/bir-checklist.png" style="height:190px;width:100%;object-fit:cover;object-position:top"><p class="cap">BIR RR 7-2024 checklist with TIN status.</p></div>
-<div><img class="shot" src="assets/split-invoice-risk-card.png" style="height:190px;width:100%;object-fit:contain;background:#fff"><p class="cap">Sample 13 flagged as a split of sample 12.</p></div></div></section>''')
+<div><img class="shot" src="assets/after/split-invoice-risk-card.png" style="height:190px;width:100%;object-fit:contain;background:#fff"><p class="cap">Sample 13 flagged as a split of sample 12.</p></div></div></section>''')
 
 PAGES.append(f'''<section class="page">{head("Features · agent","05","Ask the case: a Google ADK agent that shows its work as it goes",["GenAI","UX"])}
 <div class="grid" style="grid-template-columns:330px 1fr 1fr;gap:20px">
@@ -240,9 +240,10 @@ PAGES.append(f'''<section class="page">{head("Roadmap","11","From prototype to t
 
 PAGES.append(f'''<section class="page">{head("Team &amp; references","12","The team behind InvoiceSentinel",["Submission"])}
 <div class="grid" style="grid-template-columns:1fr 1.25fr;gap:30px">
-<div><div class="ph" style="font-size:22px;margin-bottom:12px">[TEAM NAME]</div>
-<div class="grid g2" style="gap:10px">{''.join('<div class="ph small">[MEMBER - ROLE]</div>' for _ in range(4))}</div>
-<p class="tiny" style="margin-top:8px">Teams of 2–4 professionals based in JAPAC. Replace the placeholders before submitting.</p>
+<div><div class="card navy" style="display:flex;align-items:center;gap:14px;margin-bottom:14px">{logo(48)}<div><div class="tiny" style="color:#e6b422;font-weight:700;letter-spacing:.12em">TEAM</div><div style="font-size:28px;font-weight:800;color:#fff">BKD KUBO</div></div></div>
+<div class="grid g2" style="gap:12px">
+<div class="card">{ic("rocket")}<h3>Manuel III Ocaña</h3><p class="small mute">Product Lead &amp; Solution Architect</p></div>
+<div class="card">{ic("coins")}<h3>Elson Mojics</h3><p class="small mute">Domain Lead (Finance) &amp; QA</p></div></div>
 <table style="margin-top:14px"><tr><th colspan="2">Submission links</th></tr><tr><td>Live prototype</td><td class="small">{URL}</td></tr><tr><td>Demo video</td><td class="small">[VIDEO LINK]</td></tr><tr><td>Theme</td><td class="small">BFSI: Intelligent Risk, Fraud &amp; Financial Experiences</td></tr></table></div>
 <div><h2>References (accessed Oct 12, 2026)</h2><ol class="tiny" style="padding-left:16px;line-height:1.35">
 <li>Rappler, "P25.5 billion 'lost': BIR files tax complaints vs firms selling fake receipts," Mar 16, 2023.</li>
