@@ -5,6 +5,10 @@
 set -euo pipefail
 PROJECT="${PROJECT:-gen-lang-client-0252871691}"
 REGION="${REGION:-asia-southeast1}"
+# Warm instances avoid cold starts during judging. Idle cost (asia-southeast1, request-based billing,
+# $0.0000025/vCPU-s + $0.0000025/GiB-s idle): API 1 vCPU/1 GiB ≈ US$13/mo, web 1 vCPU/0.5 GiB ≈ US$10/mo.
+# Set API_MIN=0 WEB_MIN=0 after judging to return to ~free.
+API_MIN="${API_MIN:-1}"; WEB_MIN="${WEB_MIN:-1}"
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 gcloud config set project "$PROJECT" >/dev/null
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com \
@@ -28,8 +32,9 @@ gcloud storage buckets add-iam-policy-binding "gs://$BUCKET" --member="serviceAc
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 cp -r "$ROOT/api/." "$TMP/"; rm -rf "$TMP/__pycache__"
 cp "$TMP/Dockerfile.standalone" "$TMP/Dockerfile"
+mkdir -p "$TMP/samples" && cp "$ROOT"/samples/[0-9][0-9]-*.* "$TMP/samples/"   # bundled "Try a sample" invoices
 gcloud run deploy invoicesentinel-api --source "$TMP" --region "$REGION" \
-  --port 8080 --cpu 1 --memory 1Gi --min-instances 0 --max-instances 2 --timeout 300 \
+  --port 8080 --cpu 1 --memory 1Gi --min-instances "$API_MIN" --max-instances 2 --timeout 300 \
   --allow-unauthenticated --set-secrets GEMINI_API_KEY=gemini-api-key:latest \
   --set-env-vars "STORAGE_BACKEND=firestore,FIRESTORE_PROJECT=${PROJECT},UPLOAD_BUCKET=${BUCKET}" --quiet
 API_URL=$(gcloud run services describe invoicesentinel-api --region "$REGION" --format='value(status.url)')
@@ -39,7 +44,7 @@ IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/cloud-run-source-deploy/invoicesentin
 gcloud builds submit "$ROOT/web" --region "$REGION" --config "$ROOT/deploy/cloudbuild-web.yaml" \
   --substitutions "_IMAGE=${IMAGE},_API_URL=${API_URL}"
 gcloud run deploy invoicesentinel-web --image "$IMAGE" --region "$REGION" \
-  --port 3000 --cpu 1 --memory 512Mi --min-instances 0 --max-instances 2 --allow-unauthenticated --quiet
+  --port 3000 --cpu 1 --memory 512Mi --min-instances "$WEB_MIN" --max-instances 2 --allow-unauthenticated --quiet
 WEB_URL=$(gcloud run services describe invoicesentinel-web --region "$REGION" --format="value(status.url)")
 WEB_URLS=$(gcloud run services describe invoicesentinel-web --region "$REGION" --format=json | python3 -c "import json,sys;d=json.load(sys.stdin);a=d[\"metadata\"].get(\"annotations\",{}).get(\"run.googleapis.com/urls\");print(\",\".join(json.loads(a)) if a else d[\"status\"][\"url\"])")
 

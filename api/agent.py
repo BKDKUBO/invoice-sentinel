@@ -109,7 +109,7 @@ def _short(v: Any, n: int = 220) -> str:
     return s if len(s) <= n else s[: n - 1] + "…"
 
 
-async def _run(case: dict, ctx: dict, text: str, image: bytes | None, mime: str, tools: list[Callable]) -> tuple[str, list[dict]]:
+async def _run(case: dict, ctx: dict, text: str, image: bytes | None, mime: str, tools: list[Callable], on_step: Callable | None = None) -> tuple[str, list[dict]]:
     from google.adk.agents import LlmAgent
     from google.adk.runners import Runner
     from google.adk.sessions import InMemorySessionService
@@ -130,6 +130,8 @@ async def _run(case: dict, ctx: dict, text: str, image: bytes | None, mime: str,
         for p in (ev.content.parts if ev.content and ev.content.parts else []):
             if p.function_call:
                 steps.append({"tool": p.function_call.name, "args": dict(p.function_call.args or {}), "result": None})
+                if on_step:
+                    on_step({"tool": p.function_call.name, "args": dict(p.function_call.args or {})})
             elif p.function_response:
                 st = next((s for s in reversed(steps) if s["tool"] == p.function_response.name and s["result"] is None), None)
                 if st is not None:
@@ -139,7 +141,7 @@ async def _run(case: dict, ctx: dict, text: str, image: bytes | None, mime: str,
     return final, steps
 
 
-def _invoke(case: dict, ctx: dict, text: str, image: bytes | None, tools: list[Callable]) -> tuple[dict, list[dict]]:
+def _invoke(case: dict, ctx: dict, text: str, image: bytes | None, tools: list[Callable], on_step: Callable | None = None) -> tuple[dict, list[dict]]:
     if not gemini_configured():
         raise AnalysisUnavailable("Gemini not configured")
     os.environ.setdefault("GOOGLE_API_KEY", os.environ["GEMINI_API_KEY"])
@@ -147,7 +149,7 @@ def _invoke(case: dict, ctx: dict, text: str, image: bytes | None, tools: list[C
     last: Exception | None = None
     for attempt in range(3):
         try:
-            final, steps = asyncio.run(asyncio.wait_for(_run(case, ctx, text, image, case.get("mime_type", ""), tools), timeout=150))
+            final, steps = asyncio.run(asyncio.wait_for(_run(case, ctx, text, image, case.get("mime_type", ""), tools, on_step), timeout=150))
             if not final.strip():
                 raise RuntimeError("empty agent reply")
             return _parse_json_loose(final), steps
@@ -161,14 +163,14 @@ def _invoke(case: dict, ctx: dict, text: str, image: bytes | None, tools: list[C
     raise AnalysisUnavailable(str(last))
 
 
-def agent_ask(case: dict, ctx: dict, history: list[dict], question: str, language: str, image: bytes | None) -> dict:
+def agent_ask(case: dict, ctx: dict, history: list[dict], question: str, language: str, image: bytes | None, on_step: Callable | None = None) -> dict:
     lang = ("Reply in the same language/register as the user's latest question (Tagalog → Tagalog, Taglish → Taglish, Cebuano → Cebuano, Thai → Thai…)."
             if not language or language == "auto" else f"Reply in {language} regardless of the question's language.")
     lang += " Keep codes, amounts and account numbers unchanged."
     convo = "\n".join(f"{m['role'].upper()}: {m['content']}" for m in history[-8:])
     text = (f"Case {case.get('id')}. LANGUAGE: {lang}\n" + ("CONVERSATION SO FAR:\n" + convo + "\n" if convo else "")
             + ("" if image else "(No invoice image on file; don't cite IMG.)\n") + f"USER QUESTION: {question}\n\n{ASK_OUT}")
-    out, steps = _invoke(case, ctx, text, image, _build_tools(case, ctx))
+    out, steps = _invoke(case, ctx, text, image, _build_tools(case, ctx), on_step)
     rec = str(out.get("recommendation") or "VERIFY").upper()
     return {"answer": str(out.get("answer") or ""), "recommendation": rec if rec in ("PAY", "HOLD", "VERIFY") else "VERIFY",
             "citations": [str(c) for c in out.get("citations") or []], "language": str(out.get("language") or ""),

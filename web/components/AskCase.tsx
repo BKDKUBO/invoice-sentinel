@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AgentStep, askCase, ChatMsg, draftEmail, EmailDraft, fetchChat } from "@/lib/api";
+import { ProgressSteps } from "@/components/ProgressSteps";
+import { AgentStep, askCaseStream, ChatMsg, draftEmail, EmailDraft, fetchChat } from "@/lib/api";
 
 const LANGS = ["auto", "English", "Tagalog", "Taglish", "Cebuano", "Ilocano", "Bahasa Indonesia", "Bahasa Melayu", "Thai", "Vietnamese", "Japanese", "Korean", "Mandarin Chinese", "Hindi"];
 const CHIPS = [
@@ -48,13 +49,23 @@ function Steps({ steps }: { steps?: AgentStep[] }) {
           <li key={i}>
             <span className="font-mono font-semibold text-navy-900">{i + 1}. {s.tool}</span>
             <span className="font-mono text-slate-500">({Object.entries(s.args || {}).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(", ")})</span>
-            {s.result && <div className="ml-4 truncate font-mono text-[10px] text-slate-400" title={s.result}>→ {s.result}</div>}
+            {s.result && <div className="ml-4 truncate font-mono text-[10px] text-slate-500" title={s.result}>→ {s.result}</div>}
           </li>
         ))}
       </ol>
     </details>
   );
 }
+
+const TOOL_LABEL: Record<string, string> = {
+  get_case_evidence: "Reading case evidence (extraction, flags, score)",
+  lookup_vendor: "Checking vendor master",
+  lookup_po: "Looking up purchase order",
+  validate_tin: "Validating TIN format",
+  bir_checklist: "Running BIR checklist (RR 7-2024)",
+  search_vendor_history: "Searching vendor history (duplicates, splits)",
+  draft_verification_email: "Fetching contact on file",
+};
 
 export function AskCase({ caseId }: { caseId: string }) {
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
@@ -67,6 +78,7 @@ export function AskCase({ caseId }: { caseId: string }) {
   const [drafting, setDrafting] = useState(false);
   const [copied, setCopied] = useState(false);
   const end = useRef<HTMLDivElement>(null);
+  const [live, setLive] = useState<string[]>([]);
 
   useEffect(() => {
     fetchChat(caseId).then(setMsgs).catch(() => {});
@@ -82,7 +94,8 @@ export function AskCase({ caseId }: { caseId: string }) {
     setMsgs((m) => [...m, { role: "user", content: text, at: "" }]);
     setQ("");
     try {
-      const r = await askCase(caseId, text, lang);
+      setLive([]);
+      const r = await askCaseStream(caseId, text, lang, (st) => setLive((l) => [...l, `${TOOL_LABEL[st.tool] || st.tool}`]));
       setMsgs(r.history);
     } catch (e) {
       setMsgs((m) => m.slice(0, -1));
@@ -120,7 +133,7 @@ export function AskCase({ caseId }: { caseId: string }) {
         </label>
       </div>
 
-      <div className="mt-3 max-h-[28rem] space-y-3 overflow-y-auto">
+      <div className="mt-3 max-h-[32rem] space-y-3 overflow-y-auto" aria-live="polite" aria-label="Conversation">
         {msgs.length === 0 && !busy && (
           <p className="text-sm text-slate-500">Ask anything about this invoice — in English, Tagalog, Taglish, Cebuano, Bahasa, Thai, Vietnamese… Answers cite evidence: E1 extraction, E2 flags, E4 vendor master, E5 PO, E6 vendor history, IMG invoice image.</p>
         )}
@@ -138,25 +151,32 @@ export function AskCase({ caseId }: { caseId: string }) {
               {!!m.missing_info?.length && (
                 <p className="mt-1.5 text-xs text-amber-800">Missing info: {m.missing_info.join("; ")}</p>
               )}
-              {m.language && <p className="mt-1 text-[10px] text-slate-400">Language: {m.language}</p>}
+              {m.language && <p className="mt-1 text-[10px] text-slate-500">Language: {m.language}</p>}
               <Steps steps={m.agent_steps} />
             </div>
           )
         )}
-        {busy && <div className="text-xs text-slate-500">Gemini is reviewing the evidence…</div>}
+        {busy && (
+          <ProgressSteps
+            title="ADK agent is investigating this case"
+            live={live}
+            steps={["Planning which checks to run…", "Calling tools…"]}
+          />
+        )}
         <div ref={end} />
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
         {CHIPS.map((c) => (
-          <button key={c} disabled={busy} onClick={() => send(c)} className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs text-sky-800 hover:bg-sky-100 disabled:opacity-50">
+          <button key={c} disabled={busy} onClick={() => send(c)} className="rounded-full border border-gold-300 bg-gold-50 px-2.5 py-1 text-xs text-navy-900 hover:bg-gold-100 disabled:opacity-50">
             {c}
           </button>
         ))}
       </div>
       <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); send(q); }}>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="e.g. Ligtas ba itong bayaran?" className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-sky-500 focus:outline-none" />
-        <button disabled={busy || !q.trim()} className="rounded-md bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50">Ask</button>
+        <label htmlFor="ask-input" className="sr-only">Ask a question about this case</label>
+        <input id="ask-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="e.g. Ligtas ba itong bayaran?" className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-sky-500 focus:outline-none" />
+        <button disabled={busy || !q.trim()} className="rounded-md bg-navy-950 px-3 py-1.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:opacity-50">Ask</button>
       </form>
       {err && <p className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">{err}</p>}
 
@@ -165,11 +185,20 @@ export function AskCase({ caseId }: { caseId: string }) {
           <button onClick={makeDraft} disabled={drafting} className="rounded-md bg-navy-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-navy-800 disabled:opacity-50">
             {drafting ? "Drafting…" : "Draft verification email"}
           </button>
-          <select className="rounded border border-slate-300 px-1.5 py-1 text-xs" value={emailLang} onChange={(e) => setEmailLang(e.target.value)}>
+          <select aria-label="Email language" className="rounded border border-slate-300 px-1.5 py-1 text-xs" value={emailLang} onChange={(e) => setEmailLang(e.target.value)}>
             {LANGS.filter((l) => l !== "auto").map((l) => <option key={l}>{l}</option>)}
           </select>
           <span className="text-[11px] text-slate-500">Uses the contact on file in the vendor master — never the invoice’s. Nothing is sent.</span>
         </div>
+        {drafting && (
+          <div className="mt-3">
+            <ProgressSteps
+              title="ADK agent is drafting"
+              interval={3500}
+              steps={["Reading case evidence…", "Fetching the vendor contact on file…", "Checking vendor master & PO…", "Writing the message…"]}
+            />
+          </div>
+        )}
         {draft && (
           <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
             <div className="flex items-start justify-between gap-2">

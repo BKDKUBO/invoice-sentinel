@@ -339,3 +339,78 @@ export async function saveSettings(s: Partial<Settings>): Promise<Settings> {
     })
   );
 }
+
+export interface Sample {
+  name: string;
+  description: string;
+  url: string;
+}
+
+export interface Analytics {
+  flags: { code: string; count: number }[];
+  severity: Record<Severity, number>;
+  trend: { date: string; cases: number; flagged: number; at_risk: number }[];
+  total_cases: number;
+}
+
+export async function fetchSamples(): Promise<Sample[]> {
+  return handle(await fetch(`${API_URL}/api/samples`, { cache: "no-store" }));
+}
+
+export async function fetchAnalytics(): Promise<Analytics> {
+  return handle(await fetch(`${API_URL}/api/analytics`, { cache: "no-store" }));
+}
+
+export async function analyzeSample(name: string): Promise<{ case: Case; mode: string }> {
+  const res = await fetch(`${API_URL}/api/samples/${encodeURIComponent(name)}/analyze`, { method: "POST" });
+  if (res.status === 503) {
+    throw new Error("The AI analyzer is busy right now and couldn't check this invoice. Nothing was saved — please try again in a few seconds.");
+  }
+  return handle(res);
+}
+
+export type StreamEvent =
+  | { type: "step"; tool: string; args: Record<string, unknown> }
+  | { type: "final"; reply: ChatMsg; history: ChatMsg[] }
+  | { type: "error"; status: number; message: string }
+  | { type: "ping" };
+
+/** Streams agent tool calls as they happen (NDJSON); falls back to the non-streaming endpoint. */
+export async function askCaseStream(
+  id: string,
+  question: string,
+  language: string,
+  onStep: (s: { tool: string; args: Record<string, unknown> }) => void
+): Promise<{ history: ChatMsg[] }> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/api/cases/${id}/ask-stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, language }),
+    });
+  } catch {
+    return askCase(id, question, language);
+  }
+  if (res.status === 503) throw new Error(BUSY);
+  if (!res.ok || !res.body) return askCase(id, question, language);
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i: number;
+    while ((i = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, i).trim();
+      buf = buf.slice(i + 1);
+      if (!line) continue;
+      const ev = JSON.parse(line) as StreamEvent;
+      if (ev.type === "step") onStep({ tool: ev.tool, args: ev.args });
+      else if (ev.type === "final") return { history: ev.history };
+      else if (ev.type === "error") throw new Error(ev.status === 503 ? BUSY : ev.message);
+    }
+  }
+  throw new Error(BUSY);
+}

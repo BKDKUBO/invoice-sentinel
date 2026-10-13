@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CaseActions } from "@/components/CaseActions";
 import { SeverityBadge, StatusBadge, RiskScore } from "@/components/SeverityBadge";
 import { AskCase } from "@/components/AskCase";
+import { Stepper } from "@/components/Stepper";
 import { BirPanel } from "@/components/BirPanel";
 import { MatchingPanel } from "@/components/MatchingPanel";
 import { fetchCase, fetchBir, fetchMatching, formatPHP, type BirInfo, riskLabel, type Matching } from "@/lib/api";
@@ -35,9 +36,10 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
 
   return (
     <div className="space-y-6">
+      <Stepper current={c.status === "open" ? 3 : 3} />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Link href="/inbox" className="text-xs font-medium text-sky-700 hover:underline">
+          <Link href="/inbox" className="text-sm font-medium text-navy-700 underline-offset-2 hover:underline">
             ← Back to inbox
           </Link>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-navy-950">
@@ -181,7 +183,7 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
                     {a.action}{" "}
                     <span className="font-normal text-slate-500">by {a.actor}</span>
                   </div>
-                  <div className="text-[11px] text-slate-400">{a.at}</div>
+                  <div className="text-[11px] text-slate-500">{a.at}</div>
                   {a.note && <div className="mt-0.5 text-xs text-slate-600">{a.note}</div>}
                 </li>
               ))}

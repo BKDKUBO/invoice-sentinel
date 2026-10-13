@@ -2,7 +2,8 @@ import Link from "next/link";
 import { DashboardStrip } from "@/components/DashboardStrip";
 import { ResetDemoButton } from "@/components/ResetDemoButton";
 import { SeverityBadge, StatusBadge, RiskScore } from "@/components/SeverityBadge";
-import { fetchCases, fetchDashboard, fetchHealth, formatPHP, API_URL } from "@/lib/api";
+import { FlagBreakdown, RiskTrend, SeverityMix } from "@/components/Charts";
+import { fetchAnalytics, fetchCases, fetchDashboard, fetchHealth, formatPHP, API_URL, type Analytics } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -11,9 +12,10 @@ export default async function DashboardPage() {
   let cases: Awaited<ReturnType<typeof fetchCases>> = [];
   let health = null;
   let err: string | null = null;
+  let analytics: Analytics | null = null;
 
   try {
-    [stats, cases, health] = await Promise.all([fetchDashboard(), fetchCases(), fetchHealth()]);
+    [stats, cases, health, analytics] = await Promise.all([fetchDashboard(), fetchCases(), fetchHealth(), fetchAnalytics()]);
   } catch (e) {
     err = e instanceof Error ? e.message : "API unreachable";
   }
@@ -24,26 +26,25 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-navy-950">AP risk desk</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-navy-950">AP risk desk</h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-600">
-            Multimodal invoice triage for Philippine SMEs — flag ghost receipts, duplicates, and
-            amount anomalies before payment. Human decisions stay on the audit trail.
+            Stop ghost receipts, bank-change scams, duplicates and split invoices <strong className="text-navy-900">before you pay</strong>.
+            Gemini reads every invoice; deterministic checks and a Google ADK agent explain the evidence; you decide.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {health && (
-            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
-              API {health.status} · mode{" "}
-              <span className="font-mono text-navy-800">{health.mode}</span>
-              {health.gemini_configured ? ` · ${health.gemini_model}` : " · no GEMINI_API_KEY"}
+            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+              <span className={`mr-1 inline-block h-2 w-2 rounded-full ${health.status === "ok" ? "bg-emerald-500" : "bg-red-500"}`} aria-hidden="true" />
+              {health.gemini_configured ? health.gemini_model : "no GEMINI_API_KEY"} · ADK agent · {(health as { storage?: string }).storage || "json"}
             </span>
           )}
           <ResetDemoButton />
           <Link
             href="/upload"
-            className="rounded-lg bg-navy-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-navy-800"
+            className="rounded-lg bg-gold-300 px-3 py-1.5 text-sm font-semibold text-navy-950 hover:bg-gold-200"
           >
-            Upload invoice
+            Check an invoice / try a sample →
           </Link>
         </div>
       </div>
@@ -57,10 +58,18 @@ export default async function DashboardPage() {
 
       {stats && <DashboardStrip stats={stats} />}
 
+      {analytics && (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2"><RiskTrend a={analytics} /></div>
+          <SeverityMix a={analytics} />
+          <div className="lg:col-span-3"><FlagBreakdown a={analytics} /></div>
+        </div>
+      )}
+
       <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
           <h2 className="text-sm font-semibold text-navy-900">Recent cases</h2>
-          <Link href="/inbox" className="text-xs font-medium text-sky-700 hover:underline">
+          <Link href="/inbox" className="text-sm font-medium text-navy-700 underline-offset-2 hover:underline">
             Open inbox →
           </Link>
         </div>
@@ -90,7 +99,7 @@ export default async function DashboardPage() {
                     <Link href={`/cases/${c.id}`} className="font-medium text-navy-900 hover:underline">
                       {c.extraction.vendor || "—"}
                     </Link>
-                    <div className="text-xs text-slate-400">{c.filename}</div>
+                    <div className="text-xs text-slate-500">{c.filename}</div>
                   </td>
                   <td className="px-4 py-3 font-mono text-xs">{c.extraction.invoice_number || "—"}</td>
                   <td className="px-4 py-3 tabular-nums">
