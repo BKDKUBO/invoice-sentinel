@@ -100,7 +100,7 @@ PAGES.append(f'''<section class="page cover"><div class="tri"></div>
 <div style="margin-top:26px"><span class="theme">Theme · BFSI: Intelligent Risk, Fraud &amp; Financial Experiences</span></div>
 <div style="position:absolute;left:70px;right:70px;bottom:40px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px;font-size:13px;color:#c9d6e3;border-top:1px solid #2a4663;padding-top:16px">
 <div><div class="tiny" style="color:#e6b422;font-weight:700">LIVE PROTOTYPE · CLOUD RUN</div>{URL}</div>
-<div><div class="tiny" style="color:#e6b422;font-weight:700">TEAM BKD KUBO</div>Manuel III Ocaña · Elson Mojics</div>
+<div style="display:flex;align-items:center;gap:10px"><img src="assets/team-logo.jpg" style="width:46px;height:46px;border-radius:8px;background:#fff;padding:3px"><div><div class="tiny" style="color:#e6b422;font-weight:700">BY BKD KUBO</div>Manuel III Ocaña · Elson Mojica</div></div>
 <div><div class="tiny" style="color:#e6b422;font-weight:700">GOOGLE CLOUD AI BUILDER CUP 2026</div>Prototype submission · Oct 2026</div></div></section>''')
 
 PAGES.append(f'''<section class="page">{head("The problem","01","Fake receipts are an industry, and accounts payable is where they get paid",["Problem &amp; impact"])}
@@ -240,10 +240,10 @@ PAGES.append(f'''<section class="page">{head("Roadmap","11","From prototype to t
 
 PAGES.append(f'''<section class="page">{head("Team &amp; references","12","The team behind InvoiceSentinel",["Submission"])}
 <div class="grid" style="grid-template-columns:1fr 1.25fr;gap:30px">
-<div><div class="card navy" style="display:flex;align-items:center;gap:14px;margin-bottom:14px">{logo(48)}<div><div class="tiny" style="color:#e6b422;font-weight:700;letter-spacing:.12em">TEAM</div><div style="font-size:28px;font-weight:800;color:#fff">BKD KUBO</div></div></div>
+<div><div class="card" style="display:flex;align-items:center;gap:22px;margin-bottom:14px;border:2px solid #e6b422"><img src="assets/team-logo.jpg" style="width:170px;height:170px"><div><div class="tiny" style="color:#a27a06;font-weight:700;letter-spacing:.12em">TEAM</div><div style="font-size:34px;font-weight:800;color:#0b1c2c">BKD KUBO</div><p class="small mute">Built in the Philippines for Philippine SMEs.</p></div></div>
 <div class="grid g2" style="gap:12px">
 <div class="card">{ic("rocket")}<h3>Manuel III Ocaña</h3><p class="small mute">Product Lead &amp; Solution Architect</p></div>
-<div class="card">{ic("coins")}<h3>Elson Mojics</h3><p class="small mute">Domain Lead (Finance) &amp; QA</p></div></div>
+<div class="card">{ic("coins")}<h3>Elson Mojica</h3><p class="small mute">Domain Lead (Finance) &amp; QA</p></div></div>
 <table style="margin-top:14px"><tr><th colspan="2">Submission links</th></tr><tr><td>Live prototype</td><td class="small">{URL}</td></tr><tr><td>Demo video</td><td class="small">[VIDEO LINK]</td></tr><tr><td>Theme</td><td class="small">BFSI: Intelligent Risk, Fraud &amp; Financial Experiences</td></tr></table></div>
 <div><h2>References (accessed Oct 12, 2026)</h2><ol class="tiny" style="padding-left:16px;line-height:1.35">
 <li>Rappler, "P25.5 billion 'lost': BIR files tax complaints vs firms selling fake receipts," Mar 16, 2023.</li>

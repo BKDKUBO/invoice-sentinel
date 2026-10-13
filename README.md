@@ -12,10 +12,12 @@ Ghost and fictitious receipts remain a material fraud and leakage risk for Phili
 
 ## Team: BKD KUBO
 
+<img src="docs/proposal/assets/team-logo.jpg" alt="BKD KUBO logo" width="120">
+
 | Member | Role |
 |---|---|
 | Manuel III Ocaña | Product Lead & Solution Architect |
-| Elson Mojics | Domain Lead (Finance) & QA |
+| Elson Mojica | Domain Lead (Finance) & QA |
 
 ## Theme
 
