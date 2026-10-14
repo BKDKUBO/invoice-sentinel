@@ -4,6 +4,8 @@
 
 Upload invoices/receipts (PDF/PNG/JPG) → Gemini multimodal extracts fields and flags ghost/fictitious vendors, duplicates, amount mismatches, and other AP anomalies → human-in-the-loop case inbox (Approve / Escalate / Request docs) with explainable risk cards and an audit trail.
 
+Built by BKD KUBO for the Google Cloud AI Builder Cup 2026; not affiliated with other projects of similar name.
+
 > **Disclaimer:** InvoiceSentinel is **AP risk triage before payment**. It does **not** claim BIR compliance, does **not** replace the Bureau of Internal Revenue or any tax authority, and must not be marketed as a tax-filing or e-invoicing compliance product.
 
 ## Why this exists (PH context)
