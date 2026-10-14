@@ -170,7 +170,7 @@ tb(s,28,306,664,80,[("**Guardrails stay fixed:** a person decides every payment,
 # 14 Links
 s=slide("bg_content.jpg"); title(s,"Provide links to your:")
 tb(s,46,94,640,200,[("•  GitHub Public Repository",12,True),("     https://github.com/BKDKUBO/invoice-sentinel",11,False,RGBColor(0x1A,0x56,0xB8)),("",6),
- ("•  Demo Video Link (3 Minutes)",12,True),("     https://drive.google.com/file/d/1QeAfyMxYIUnmQdOuLhxhQRP4CmUfL67a/view",11,False,GOLD),("",6),
+ ("•  Demo Video Link (3 Minutes)",12,True),("     https://drive.google.com/file/d/1mIB4FfR1lKYbUxSovZpBJaOMQzojOQUn/view",11,False,GOLD),("",6),
  ("•  Final Product Link",12,True),("     "+URL,11,False,RGBColor(0x1A,0x56,0xB8)),("     (Firebase Hosting → Cloud Run; direct: "+RUNURL+")",8.5,False,MUTE),("",6),
  ("Try it: Check an invoice → Try a sample → 09 (known vendor, new bank). Reset demo restores seed data. All data is fictional.",9,False,MUTE)])
 
