@@ -54,7 +54,7 @@ def table(s,x,y,w,rows,colw,size=8.5,rowh=13):
 s=slide("bg_team.jpg")
 tb(s,17,226,300,30,[("Team Details",16,True,INK)])
 tb(s,40,268,470,110,[("a.   Team name: **BKD KUBO**",12),("b.   Team leader name: **Manuel III Ocaña**",12),("c.   Problem Statement: **BFSI: Intelligent Risk, Fraud & Financial Experiences**",12),
-   ("Members: Manuel III Ocaña (Product Lead & Solution Architect) · Elson Mojica (Domain Lead, Finance & QA)",9,False,MUTE),("Solution: InvoiceSentinel, a pre-payment AP fraud & risk desk for PH SMEs",9,False,MUTE)])
+   ("Members: Manuel III Ocaña — Product Lead & Solution Architect · Elson Mojica — Process & QA Lead (BFSI Operations)",9,False,MUTE),("Solution: InvoiceSentinel, a pre-payment AP fraud & risk desk for PH SMEs",9,False,MUTE)])
 img(s,"teamlogo.jpg",600,238,92,None,border=False)
 
 # 3 Brief about the idea
@@ -170,7 +170,7 @@ tb(s,28,306,664,80,[("**Guardrails stay fixed:** a person decides every payment,
 # 14 Links
 s=slide("bg_content.jpg"); title(s,"Provide links to your:")
 tb(s,46,94,640,200,[("•  GitHub Public Repository",12,True),("     https://github.com/BKDKUBO/invoice-sentinel",11,False,RGBColor(0x1A,0x56,0xB8)),("",6),
- ("•  Demo Video Link (3 Minutes)",12,True),("     [VIDEO LINK]",11,False,GOLD),("",6),
+ ("•  Demo Video Link (3 Minutes)",12,True),("     https://drive.google.com/file/d/1QeAfyMxYIUnmQdOuLhxhQRP4CmUfL67a/view",11,False,GOLD),("",6),
  ("•  Final Product Link",12,True),("     "+URL,11,False,RGBColor(0x1A,0x56,0xB8)),("     (Firebase Hosting → Cloud Run; direct: "+RUNURL+")",8.5,False,MUTE),("",6),
  ("Try it: Check an invoice → Try a sample → 09 (known vendor, new bank). Reset demo restores seed data. All data is fictional.",9,False,MUTE)])
 

@@ -17,7 +17,7 @@ Ghost and fictitious receipts remain a material fraud and leakage risk for Phili
 | Member | Role |
 |---|---|
 | Manuel III Ocaña | Product Lead & Solution Architect |
-| Elson Mojica | Domain Lead (Finance) & QA |
+| Elson Mojica | Process & QA Lead (BFSI Operations) |
 
 ## Theme
 
